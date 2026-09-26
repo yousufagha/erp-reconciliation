@@ -79,5 +79,5 @@ def test_statement_balances(syn_docs):
 def test_public_invoices_floor():
     """Real invoices from other countries and languages. A floor, not a target: the
     deterministic reader must not regress; the model path is expected to lift it."""
-    sc = harness.score(harness.load_truth(PUB), [d.to_json() for d in run(PUB)])
+    sc = harness.score(harness.load_truth(PUB), [d.to_json() for d in run(PUB)], gated=False)
     assert sc.by_format["pdf_text"].pct >= 30

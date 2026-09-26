@@ -61,9 +61,11 @@ def main(argv: list[str] | None = None) -> int:
             preds = [d.to_json() for d in docs]
         else:
             preds = _read(corpus, a.reader)
-        sc = harness.score(truth, preds)
-        results[str(corpus)] = sc.to_json()
+        sc = harness.score(truth, preds, gated=False)
+        gq = harness.gate_quality(truth, preds)
+        results[str(corpus)] = sc.to_json() | {"gate": gq}
         print(harness.format_report(f"{corpus} [{a.reader}]", sc))
+        print(f"  gate: let through {gq['coverage']}% of header fields; {gq['accuracy_of_what_passed']}% of those right")
         if "reconciliation" in truth and a.reader == "pipeline":
             rsc = harness.score_reconciliation(truth["reconciliation"], resolve(docs).to_json())
             results[str(corpus)]["reconciliation"] = rsc

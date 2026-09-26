@@ -236,12 +236,22 @@ def _packets(truth_docs: list[dict], preds: list[dict]) -> Tally:
     return tally
 
 
-def score(truth: dict, preds: list[dict]) -> Score:
+def _accepted(p: dict) -> dict:
+    """A held document is a question for a person, not an answer: provisional values are not scored."""
+    if p.get("status") in ("held", "failed"):
+        return {**p, "doc_type": "unknown", "fields": {}, "lines": []}
+    return p
+
+
+def score(truth: dict, preds: list[dict], gated: bool = True) -> Score:
+    """gated=True scores only what passed the gate (what the client would be shown as fact);
+    gated=False scores every reading, including held ones (how well the readers read)."""
     sc = Score()
     truth_docs = truth["documents"]
     sc.held = sum(1 for p in preds if p.get("status") == "held")
     sc.packets = _packets(truth_docs, preds)
     for t, p in align(truth_docs, preds):
+        p = None if p is None else (_accepted(p) if gated else p)
         tid = t.get("id") or "/".join(t["files"])
         fmt = t.get("format", "unknown")
         sc.documents.add(p is not None)
@@ -272,6 +282,18 @@ def score(truth: dict, preds: list[dict]) -> Score:
                 sc.by_type[t["doc_type"]].add(ok)
                 sc.by_format[fmt].add(ok)
     return sc
+
+
+def gate_quality(truth: dict, preds: list[dict]) -> dict:
+    """Selective automation: of the header fields the gate let through, how many were right,
+    and how many right values did it hold back."""
+    raw, acc = score(truth, preds, gated=False), score(truth, preds, gated=True)
+    passed = sum(1 for t, p in align(truth["documents"], preds) if p is not None and p.get("status") not in ("held", "failed")
+                 for k, v in (t.get("fields") or {}).items() if v is not None)
+    return {"fields_read_correctly": raw.headers.right, "fields_total": raw.headers.total,
+            "fields_let_through": passed, "let_through_and_right": acc.headers.right,
+            "accuracy_of_what_passed": None if not passed else round(100 * acc.headers.right / passed, 1),
+            "coverage": None if not raw.headers.total else round(100 * passed / raw.headers.total, 1)}
 
 
 def format_report(name: str, sc: Score) -> str:

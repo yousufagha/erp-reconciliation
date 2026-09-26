@@ -26,6 +26,15 @@ PATTERNS: list[tuple[DocType, re.Pattern, int]] = [
     (DocType.PRICE_SCHEDULE, re.compile(r"\b(price\s+(schedule|list)|pricing\s+schedule|rate\s+card)\b", re.I), 3),
     (DocType.SUPPLIER_INVOICE, re.compile(r"\b(tax\s+invoice|invoice|facture|factuur|rechnung|bill|receipt)\b", re.I), 2),
 ]
+# Titles printed or scanned with spaced-out letters ("D E LIV E RY DOC KET")
+SQUEEZED = [(DocType.CREDIT_NOTE, re.compile(r"(taxcredit|credit|adjustment)note")),
+            (DocType.REMITTANCE, re.compile(r"(remittance|payment)advice")),
+            (DocType.STATEMENT, re.compile(r"statementofaccount")),
+            (DocType.GOODS_RECEIPT, re.compile(r"deliverydocket|deliverynote|goodsreceivednote|packingslip")),
+            (DocType.PURCHASE_ORDER, re.compile(r"^purchaseorder$")),
+            (DocType.PRICE_SCHEDULE, re.compile(r"priceschedule|pricelist")),
+            (DocType.SUPPLIER_INVOICE, re.compile(r"^(tax)?invoice$"))]
+
 NEGATIONS = re.compile(r"\bnot\s+a\s+(tax\s+)?invoice\b|\bquote\s+the\s+invoice\b|\bcopy\s+of\s+invoice\b"
                        r"|\binvoice\s+(no|number|date|#)|\bpurchase\s+order\s+(no|number)", re.I)
 
@@ -56,6 +65,14 @@ def classify(grid: Grid, top_rows: int = 25) -> Classification:
                 score = strength * position * (1.5 if short else 1.0) - i * 0.01
                 if best is None or score > best[0]:
                     best = (score, dt, cell.strip()[:60])
+            squeezed = re.sub(r"[^a-z]", "", cell.casefold())
+            if re.search(r"\b\w\s\w\b", cell) and len(squeezed) <= 24:
+                for dt, pat in SQUEEZED:
+                    if pat.search(squeezed):
+                        score = 3 * (1.0 if i < top_rows else 0.4) * 1.5 - i * 0.01
+                        if best is None or score > best[0]:
+                            best = (score, dt, cell.strip()[:60])
+                        break
     if best is None:
         return Classification(DocType.UNKNOWN, 0.0, "no printed document label")
     score, dt, ev = best

@@ -21,7 +21,7 @@ verdict.
 | 2 | Text-layer PDFs, classification, per-type schemas and checks | done |
 | 3 | Splitting and joining documents | done |
 | 4 | Chain assembly and the three pendency registers | done |
-| 5 | Model reading for scans and photos (Gemini free tier for testing) | next |
+| 5 | Model reading for scans and photos (Gemini free tier for testing) | built; live run pending on the Mac, see docs/02-model-testing.md |
 | 6 | Status report (`pile status <folder>`) | first version |
 
 ## Test corpus

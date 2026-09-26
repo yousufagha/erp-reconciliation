@@ -39,6 +39,9 @@ def read_item(item: Item, ctx: Context) -> list[ReadDocument]:
     if prof.kind in GRID_BUILDERS:
         grid = GRID_BUILDERS[prof.kind](item.data, item.ref)
         return [from_grid(grid, src, ctx, reader=prof.kind)]
+    if prof.kind == "image":
+        from .image_read import read_images
+        return read_images(item, "image", None, ctx)
     if prof.kind == "pdf":
         from .pdf_text import read_pdf           # step 2
         return read_pdf(item, prof, ctx)
@@ -75,6 +78,9 @@ def gate(doc: ReadDocument, ctx: Context) -> None:
     if failed:
         doc.status = "held"
         doc.notes += [f"check failed: {c.name} ({c.detail})" if c.detail else f"check failed: {c.name}" for c in failed]
+        return
+    from .image_read import third_question
+    third_question(doc)
 
 
 def run(folder: Path) -> list[ReadDocument]:

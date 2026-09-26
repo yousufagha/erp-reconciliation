@@ -90,6 +90,7 @@ class ReadDocument:
     checks: list = field(default_factory=list)           # validate.Check
     printed_label: str = ""
     raw_text: str = ""                                   # kept for joining; not written out
+    model_read: bool = False                             # values came from a model reading an image
 
     def value(self, name: str) -> Any:
         fv = self.fields.get(name)
@@ -107,6 +108,7 @@ class ReadDocument:
             },
             "lines": self.lines,
             "reader": self.reader,
+            "model_read": self.model_read,
             "status": self.status,
             "notes": self.notes,
             "checks": [c.to_json() for c in self.checks],

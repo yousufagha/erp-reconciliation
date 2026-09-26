@@ -127,9 +127,11 @@ class Resolution:
 
 # ------------------------------------------------------------------ main
 def resolve(docs: list[ReadDocument]) -> Resolution:
-    unread = [{"source": d.sources[0].file, "status": d.status, "why": (d.notes or [""])[-1]}
-              for d in docs if d.status not in ("read",) and d.status != "duplicate"]
-    read = [d for d in docs if d.status == "read"]
+    unread = [{"source": d.sources[0].file, "status": d.status, "why": (d.notes or [""])[-1],
+               "provisional": {k: v.value for k, v in d.fields.items()} | ({"doc_type": d.doc_type.value}
+                                                                          if d.doc_type != DocType.UNKNOWN else {})}
+              for d in docs if d.status not in ("read", "flagged", "duplicate")]
+    read = [d for d in docs if d.status in ("read", "flagged")]
     exceptions: list[Exception_] = []
 
     # one record per business document; copies noted, not double counted
@@ -343,8 +345,15 @@ def resolve(docs: list[ReadDocument]) -> Resolution:
     if unread:
         for e in exceptions:
             if e.bucket in ("missing_receipt", "quantity_variance") and not e.resolved_by:
-                e.headline += (f" {len(unread)} document(s) in the pile are unread; the delivery record may be"
-                               f" among them.")
+                hint = [u for u in unread if e.po and _num(u["provisional"].get("po_reference")) == _num(e.po)]
+                if hint:
+                    u = hint[0]
+                    what = u["provisional"].get("doc_type", "document").replace("_", " ")
+                    e.headline += (f" An unread {what} ({u['provisional'].get('doc_number', 'no number')} in "
+                                   f"{u['source']}) appears to name {e.po}; read it before acting.")
+                else:
+                    e.headline += (f" {len(unread)} document(s) in the pile are unread; the delivery record may be"
+                                   f" among them.")
     return Resolution([pl for ls in po_lines.values() for pl in ls], invoice_to_po, link_scores,
                       goods_owed, paperwork_owed, invoiced_not_received, money_owed, exceptions, unread, corroboration)
 

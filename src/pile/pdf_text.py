@@ -68,10 +68,10 @@ def _join(words: list[dict]) -> str:
 
 
 def read_pdf(item, prof, ctx) -> list[ReadDocument]:
+    from .image_read import read_images
     from .pipeline import from_grid
     if not prof.text_pages:
-        return [ReadDocument([SourceRef(item.ref)], DocType.UNKNOWN, reader="none", status="held",
-                             notes=["scanned or photographed PDF: no text layer; needs a model or a person"])]
+        return read_images(item, "pdf", prof.image_pages, ctx, prof.pages)
     from .segment import CONTINUED, split_pages
     grid = pdf_grid(item.data, prof.text_pages, item.ref)
     groups, why = split_pages(grid, prof.text_pages)
@@ -87,5 +87,5 @@ def read_pdf(item, prof, ctx) -> list[ReadDocument]:
     if why:
         docs[0].notes += why
     if prof.image_pages:
-        docs[-1].notes.append(f"pages {prof.image_pages} have no text layer and were not read")
+        docs += read_images(item, "pdf", prof.image_pages, ctx, prof.pages)
     return docs

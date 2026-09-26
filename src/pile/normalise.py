@@ -9,7 +9,7 @@ _MONTHS = {m: i for i, m in enumerate(
 _MONTHS.update({"janvier": 1, "février": 2, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6,
                 "juillet": 7, "août": 8, "aout": 8, "septembre": 9, "octobre": 10, "novembre": 11,
                 "décembre": 12, "decembre": 12, "januari": 1, "februari": 2, "maart": 3, "mei": 5,
-                "juni": 6, "juli": 7, "augustus": 8, "oktober": 10})
+                "juni": 6, "juli": 7, "augustus": 8, "oktober": 10, "märz": 3, "maerz": 3, "dezember": 12})
 
 MONEY_RE = re.compile(r"\(?-?\s?(?:[$€£₹]|rs\.?|aud|usd|eur)?\s?-?\d{1,3}(?:[,\s.]\d{3})*(?:[.,]\d{1,2})?\)?(?:\s?cr)?", re.I)
 
@@ -71,7 +71,7 @@ def parse_date(v, dayfirst: bool = True) -> str | None:
         return v.date().isoformat()
     if isinstance(v, date):
         return v.isoformat()
-    s = str(v).strip()
+    s = re.sub(r"\s+,", ",", str(v).strip())
     m = re.search(r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b", s)
     if m:
         return _iso(int(m[1]), int(m[2]), int(m[3]))
@@ -82,7 +82,7 @@ def parse_date(v, dayfirst: bool = True) -> str | None:
         if dayfirst and b <= 12:
             return _iso(y, b, a) or _iso(y, a, b)
         return _iso(y, a, b) or _iso(y, b, a)
-    m = re.search(r"\b(\d{1,2})(?:st|nd|rd|th|er)?\s+([A-Za-zéû]{3,9})\.?,?\s+(\d{4})\b", s)
+    m = re.search(r"\b(\d{1,2})(?:st|nd|rd|th|er)?\.?\s+([A-Za-zéûä]{3,9})\.?,?\s+(\d{4})\b", s)
     if m and m[2].lower()[:3] in _MONTHS or (m and m[2].lower() in _MONTHS):
         mon = _MONTHS.get(m[2].lower()) or _MONTHS.get(m[2].lower()[:3])
         return _iso(int(m[3]), mon, int(m[1]))

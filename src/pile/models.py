@@ -87,6 +87,8 @@ class ReadDocument:
     reader: str = ""
     status: str = "read"              # read | held | failed
     notes: list[str] = field(default_factory=list)
+    checks: list = field(default_factory=list)           # validate.Check
+    printed_label: str = ""
 
     def value(self, name: str) -> Any:
         fv = self.fields.get(name)
@@ -106,4 +108,5 @@ class ReadDocument:
             "reader": self.reader,
             "status": self.status,
             "notes": self.notes,
+            "checks": [c.to_json() for c in self.checks],
         }

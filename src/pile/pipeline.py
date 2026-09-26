@@ -14,6 +14,7 @@ from .extract import Context, extract
 from .intake import Item, intake
 from .models import DocType, FieldValue, ReadDocument, SourceRef
 from .profile import profile
+from . import validate
 from .readers.ubl import read_ubl
 
 GRID_BUILDERS = {"xlsx": layout.from_xlsx, "csv": layout.from_csv, "docx": layout.from_docx, "text": layout.from_text}
@@ -36,7 +37,7 @@ def read_item(item: Item, ctx: Context) -> list[ReadDocument]:
         return [ReadDocument(src, dt, fields, lines, reader="ubl")]
     if prof.kind in GRID_BUILDERS:
         grid = GRID_BUILDERS[prof.kind](item.data, item.ref)
-        return [_from_grid(grid, src, ctx, reader=prof.kind)]
+        return [from_grid(grid, src, ctx, reader=prof.kind)]
     if prof.kind == "pdf":
         from .pdf_text import read_pdf           # step 2
         return read_pdf(item, prof, ctx)
@@ -44,15 +45,35 @@ def read_item(item: Item, ctx: Context) -> list[ReadDocument]:
     return [ReadDocument(src, DocType.UNKNOWN, reader="none", status="held", notes=[reason])]
 
 
-def _from_grid(grid, src, ctx, reader: str) -> ReadDocument:
+def from_grid(grid, src, ctx, reader: str) -> ReadDocument:
     cls = classify(grid)
     fields, lines = extract(grid, cls.doc_type, ctx, source=reader)
-    doc = ReadDocument(src, cls.doc_type, fields, lines, reader=reader,
+    doc = ReadDocument(src, cls.doc_type, fields, lines, reader=reader, printed_label=cls.evidence,
                        notes=[f"type from printed label: {cls.evidence!r}"])
     if cls.doc_type == DocType.UNKNOWN:
         doc.status = "held"
         doc.notes.append("no document type printed; needs a model or a person")
     return doc
+
+
+def gate(doc: ReadDocument, ctx: Context) -> None:
+    """FIG 8, first two questions. Did the read yield anything? Does the arithmetic hold?
+
+    The third question (would a better reader fix the weak fields?) needs the model
+    path and the confidence engine, step 5.
+    """
+    if doc.status != "read":
+        return
+    australian = bool(ctx.buyer_abn) or bool(doc.value("supplier_abn"))
+    doc.checks = validate.check(doc, doc.printed_label, australian=australian)
+    if not doc.fields and not doc.lines:
+        doc.status = "held"
+        doc.notes.append("the read found nothing; an empty reading is never accepted")
+        return
+    failed = [c for c in doc.checks if not c.passed and c.kind in ("arithmetic", "presence")]
+    if failed:
+        doc.status = "held"
+        doc.notes += [f"check failed: {c.name} ({c.detail})" if c.detail else f"check failed: {c.name}" for c in failed]
 
 
 def run(folder: Path) -> list[ReadDocument]:
@@ -69,6 +90,8 @@ def run(folder: Path) -> list[ReadDocument]:
             continue
         seen[it.sha256] = it.ref
         docs.extend(read_item(it, ctx))
+    for d in docs:
+        gate(d, ctx)
     _flag_same_document(docs)
     return docs
 

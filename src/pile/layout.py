@@ -20,6 +20,7 @@ class Row:
     page: int = 1
     y: float | None = None
     xs: list[float] | None = None          # left x of each cell, PDFs only
+    x1s: list[float] | None = None         # right x of each cell, PDFs only
 
     @property
     def texts(self) -> list[str]:

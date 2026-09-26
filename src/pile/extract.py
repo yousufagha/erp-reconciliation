@@ -88,13 +88,11 @@ def header_candidates(grid: Grid, doc_type: DocType, fields: tuple[str, ...]):
                     continue
                 lab, rest = hit
                 rank = labs.index(lab)
-                options = []
-                if rest:
-                    options.append(rest)
-                else:
-                    right = [t for t in texts[ci + 1:] if t]
-                    if right:
-                        options.append(row.cells[texts.index(right[0], ci + 1)])
+                options = [rest] if rest else []
+                right = [t for t in texts[ci + 1:] if t]
+                if right:
+                    options.append(row.cells[texts.index(right[0], ci + 1)])
+                if not rest:
                     below = _below(rows, ri, ci, row)
                     if below is not None:
                         options.append(below)
@@ -158,18 +156,27 @@ def find_tables(grid: Grid) -> list[tuple[int, dict[int, str]]]:
     return tables
 
 
+def _column_of(row: Row, header: Row, k: int) -> int | None:
+    """Header column a PDF cell sits under: the region its centre falls in.
+
+    Regions run from halfway between neighbouring headers, so left-aligned text and
+    right-aligned numbers both land under the header they belong to.
+    """
+    hx0, hx1 = header.xs, header.x1s or header.xs
+    centre = (row.xs[k] + (row.x1s or row.xs)[k]) / 2
+    for i in range(len(hx0)):
+        lo = -1e9 if i == 0 else (hx1[i - 1] + hx0[i]) / 2
+        hi = 1e9 if i == len(hx0) - 1 else (hx1[i] + hx0[i + 1]) / 2
+        if lo <= centre < hi:
+            return i
+    return None
+
+
 def _cell_for(row: Row, header: Row, ci: int):
     """Cell in `row` under header column `ci` (by index for grids, by position for PDFs)."""
     if header.xs and row.xs:
-        hx0 = header.xs[ci]
-        hx1 = header.xs[ci + 1] if ci + 1 < len(header.xs) else 10_000
-        hxprev = header.xs[ci - 1] if ci > 0 else -10_000
-        for k, x in enumerate(row.xs):
-            # a cell belongs to the column whose span its left edge falls in, with some slack for
-            # right-aligned numbers that start left of their header
-            if hx0 - 25 <= x < hx1 - 5 and x > hxprev + 5:
-                return row.cells[k]
-        return None
+        hits = [row.cells[k] for k in range(len(row.cells)) if _column_of(row, header, k) == ci]
+        return " ".join(str(h) for h in hits) if hits else None
     return row.cells[ci] if ci < len(row.cells) else None
 
 
@@ -177,6 +184,7 @@ def read_table(grid: Grid, ri: int, cols: dict[int, str]) -> tuple[list[dict], i
     header = grid.rows[ri]
     lines: list[dict] = []
     end = ri
+    lines_page = header.page
     for rj in range(ri + 1, len(grid.rows)):
         row = grid.rows[rj]
         if row.is_blank:
@@ -188,8 +196,8 @@ def read_table(grid: Grid, ri: int, cols: dict[int, str]) -> tuple[list[dict], i
         if TOTAL_ROW.match(norm(first)) and not any(re.search(r"[A-Z]{2,}-?\d", t) for t in row.texts[:2]):
             end = rj
             break
-        if any(_column_field(t) for t in row.texts if t) and sum(1 for t in row.texts if _column_field(t)) >= 2:
-            end = rj
+        if sum(1 for t in row.texts if t and _column_field(t)) >= 2:
+            end = rj - 1                    # the next table's heading row belongs to the next table
             break
         vals = {f: _cell_for(row, header, ci) for ci, f in cols.items()}
         line: dict[str, Any] = {}
@@ -217,17 +225,26 @@ def read_table(grid: Grid, ri: int, cols: dict[int, str]) -> tuple[list[dict], i
         line.pop("balance", None)
         has_number = any(k in line for k in ("quantity", "unit_price", "amount"))
         if not has_number:
-            # a wrapped description continues the previous line
+            # a wrapped description continues the previous line: same page, only the description column
             text = " ".join(t for t in row.texts if t)
-            if lines and text and not re.search(r"\d{3,}", text) and len(text) < 80 and "reference" not in line:
+            desc_col = next((ci for ci, f in cols.items() if f == "description"), None)
+            only_desc = desc_col is not None and (
+                all(_column_of(row, header, k) == desc_col for k in range(len(row.cells)))
+                if header.xs and row.xs else len([t for t in row.texts if t]) == 1)
+            if lines and only_desc and row.page == lines_page and len(text) < 80:
                 lines[-1]["description"] = (lines[-1].get("description", "") + " " + text).strip()
             continue
         lines.append(line)
+        lines_page = row.page
         end = rj
     return lines, end
 
 
 # ------------------------------------------------------------------ parties
+BUYER_BLOCK = re.compile(r"^\s*(bill(ed)?\s+to|ship\s+to|sold\s+to|invoice\s+to|deliver\s+to|attn|customer\b|"
+                         r"billing\s+address|factuuradres|rechnungsadresse|adresse\s+de\s+facturation)", re.I)
+
+
 def _looks_like_company(s: str) -> bool:
     return bool(LEGAL_ENTITY.search(s)) and len(s) <= 80 and len(s.split()) <= 10
 
@@ -255,7 +272,14 @@ def infer_parties(grid: Grid, doc_type: DocType, ctx: Context, found: dict[str, 
     if doc_type in (DocType.PURCHASE_ORDER, DocType.REMITTANCE) or labelled:
         supplier = labelled
     if not supplier:
-        for row in [r for r in grid.rows if not r.is_blank][:14]:
+        nonblank = [r for r in grid.rows if not r.is_blank]
+        buyer_block: set[int] = set()
+        for i, row in enumerate(nonblank[:30]):
+            if any(BUYER_BLOCK.match(t) for t in row.texts):
+                buyer_block.update(range(i, i + 4))
+        for i, row in enumerate(nonblank[:14]):
+            if i in buyer_block:
+                continue
             for t in row.texts:
                 t2 = re.sub(r"^(from|supplier|sold by|payee)\s*[:\-]\s*", "", t, flags=re.I).strip()
                 cand = t2.split("  ")[0].split(" | ")[0].strip()
@@ -266,7 +290,8 @@ def infer_parties(grid: Grid, doc_type: DocType, ctx: Context, found: dict[str, 
             if supplier:
                 break
     if not supplier:
-        first = next((t for r in grid.rows for t in r.texts if t and not _is_label(t)), None)
+        first = next((t for r in grid.rows for t in r.texts
+                      if t and not _is_label(t) and not BUYER_BLOCK.match(t) and not TITLE_WORDS.search(t)), None)
         if first and not _same_party(first, ctx.buyer_name) and _name(first):
             supplier = _name(first)
     if supplier:
@@ -275,6 +300,10 @@ def infer_parties(grid: Grid, doc_type: DocType, ctx: Context, found: dict[str, 
     if abns:
         out["supplier_abn"] = abns[0]
     return out
+
+
+TITLE_WORDS = re.compile(r"\b(invoice|receipt|statement|docket|credit note|purchase order|remittance|factuur|"
+                         r"facture|rechnung)\b", re.I)
 
 
 def _is_label(t: str) -> bool:
@@ -304,10 +333,10 @@ def extract(grid: Grid, doc_type: DocType, ctx: Context | None = None, source: s
 
     best: dict[str, tuple[int, int, Any]] = {}
     for field, val, rank, ri in header_candidates(grid, doc_type, search):
-        if field in TOTAL_FIELDS and table_end >= 0 and ri < table_end:
-            continue                        # totals live after the lines
-        if field not in TOTAL_FIELDS and table_end >= 0 and table_start < ri < table_end:
-            continue                        # nothing but lines inside the table
+        if field in TOTAL_FIELDS - {"closing_balance"} and table_end >= 0 and ri < table_end:
+            continue                        # invoice totals live after the lines
+        if field not in TOTAL_FIELDS and table_end >= 0 and table_start <= ri < table_end:
+            continue                        # column headings and lines are not header fields
         key = (rank, ri if field not in TOTAL_FIELDS else -ri if field == "closing_balance" else ri)
         if field not in best or key < best[field][:2]:
             best[field] = (key[0], key[1], val)

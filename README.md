@@ -20,9 +20,9 @@ verdict.
 | 1 | Intake, dedupe, profile, exact formats (UBL, XLSX, CSV, DOCX, email) | done |
 | 2 | Text-layer PDFs, classification, per-type schemas and checks | done |
 | 3 | Splitting and joining documents | done |
-| 4 | Chain assembly and the three pendency registers | next |
-| 5 | Model reading for scans and photos (Gemini free tier for testing) | |
-| 6 | Status report | |
+| 4 | Chain assembly and the three pendency registers | done |
+| 5 | Model reading for scans and photos (Gemini free tier for testing) | next |
+| 6 | Status report (`pile status <folder>`) | first version |
 
 ## Test corpus
 
@@ -42,4 +42,5 @@ pip install -e ".[dev]"
 pytest
 pile eval corpus/synthetic/scenario_aug2026 corpus/public/invoice2data --reader trivial
 pile read path/to/folder -o found.json
+pile status corpus/synthetic/scenario_aug2026   # goods owed, paperwork owed, money owed, exceptions
 ```

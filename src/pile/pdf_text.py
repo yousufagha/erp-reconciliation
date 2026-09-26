@@ -62,7 +62,7 @@ def _join(words: list[dict]) -> str:
     out = words[0]["text"]
     for prev, w in zip(words, words[1:]):
         dropcap = len(prev["text"]) == 1 and prev["text"].isupper() and w["text"][:1].islower() \
-            and w["x0"] - prev["x1"] < 0.6 * max(prev.get("size", 9), 6)
+            and w["x0"] - prev["x1"] < 0.1 * max(prev.get("size", 9), 6)
         out += ("" if dropcap else " ") + w["text"]
     return out
 

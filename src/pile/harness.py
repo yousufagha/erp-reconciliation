@@ -294,3 +294,51 @@ def format_report(name: str, sc: Score) -> str:
 
 def load_truth(corpus_dir: Path) -> dict:
     return json.loads((corpus_dir / "truth.json").read_text())
+
+
+# ---------------------------------------------------------------- reconciliation
+def _pr(truth_items: dict, pred_items: dict, value_key: str | None) -> dict:
+    right = 0
+    wrong = []
+    for k, tv in truth_items.items():
+        pv = pred_items.get(k)
+        ok = pv is not None and (value_key is None or abs(float(tv[value_key]) - float(pv[value_key])) < 0.006)
+        right += ok
+        if not ok:
+            wrong.append({"key": list(k) if isinstance(k, tuple) else k, "expected": tv.get(value_key) if value_key else True,
+                          "got": (pv or {}).get(value_key) if value_key else pv is not None})
+    extra = [list(k) if isinstance(k, tuple) else k for k in pred_items if k not in truth_items]
+    return {"right": right, "truth": len(truth_items), "predicted": len(pred_items),
+            "recall": None if not truth_items else round(100 * right / len(truth_items), 1),
+            "precision": None if not pred_items else round(100 * right / len(pred_items), 1),
+            "wrong": wrong, "unexpected": extra}
+
+
+def score_reconciliation(truth: dict, res: dict) -> dict:
+    t, out = truth, {}
+    links_t = t.get("invoice_to_po", {})
+    links_p = res.get("invoice_to_po", {})
+    ok = [k for k, v in links_t.items() if k in links_p and links_p[k] == v]
+    out["invoice_to_po"] = {"right": len(ok), "truth": len(links_t),
+                            "wrong": {k: {"expected": v, "got": links_p.get(k, "not read")}
+                                      for k, v in links_t.items() if k not in ok}}
+    for reg, key, val in (("goods_owed", ("po", "sku"), "outstanding"), ("paperwork_owed", ("po", "sku"), "outstanding"),
+                          ("invoiced_not_received", ("po", "sku"), "excess"), ("money_owed", ("invoice",), "outstanding")):
+        ti = {tuple(e[k] for k in key): e for e in t.get(reg, [])}
+        pi = {tuple(e[k] for k in key): e for e in res.get(reg, [])}
+        out[reg] = _pr(ti, pi, val)
+    te = {(e["bucket"], e["document"]): e for e in t.get("exceptions", [])}
+    pe = {(e["bucket"], e["document"]): e for e in res.get("exceptions", [])}
+    out["exceptions"] = _pr(te, pe, None)
+    return out
+
+
+def format_reconciliation(sc: dict) -> str:
+    lines = ["  reconciliation:"]
+    l = sc["invoice_to_po"]
+    lines.append(f"    {'invoice -> PO links':<26}{l['right']}/{l['truth']}")
+    for k in ("goods_owed", "paperwork_owed", "invoiced_not_received", "money_owed", "exceptions"):
+        v = sc[k]
+        lines.append(f"    {k.replace('_', ' '):<26}recall {v['recall']}%  precision {v['precision']}%  "
+                     f"({v['right']} right of {v['truth']} expected, {v['predicted']} reported)")
+    return "\n".join(lines)

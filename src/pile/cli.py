@@ -30,7 +30,20 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--reader", default="pipeline", choices=sorted(READERS))
     e.add_argument("--json", type=Path, help="write the full score here")
     e.add_argument("--misses", action="store_true", help="print every wrong field")
+    s = sub.add_parser("status", help="read a pile and report the status of the paperwork and the goods")
+    s.add_argument("folder", type=Path)
+    s.add_argument("--json", type=Path)
     a = ap.parse_args(argv)
+
+    if a.cmd == "status":
+        from .pipeline import run
+        from .report import render
+        from .resolve import resolve
+        res = resolve(run(a.folder))
+        print(render(res))
+        if a.json:
+            a.json.write_text(json.dumps(res.to_json(), indent=2, default=str))
+        return 0
 
     if a.cmd == "read":
         docs = _read(a.folder, a.reader)
@@ -40,10 +53,21 @@ def main(argv: list[str] | None = None) -> int:
 
     results = {}
     for corpus in a.corpus:
-        preds = _read(corpus, a.reader)
-        sc = harness.score(harness.load_truth(corpus), preds)
+        truth = harness.load_truth(corpus)
+        if a.reader == "pipeline":
+            from .pipeline import run
+            from .resolve import resolve
+            docs = run(corpus)
+            preds = [d.to_json() for d in docs]
+        else:
+            preds = _read(corpus, a.reader)
+        sc = harness.score(truth, preds)
         results[str(corpus)] = sc.to_json()
         print(harness.format_report(f"{corpus} [{a.reader}]", sc))
+        if "reconciliation" in truth and a.reader == "pipeline":
+            rsc = harness.score_reconciliation(truth["reconciliation"], resolve(docs).to_json())
+            results[str(corpus)]["reconciliation"] = rsc
+            print(harness.format_reconciliation(rsc))
         if a.misses:
             print("  misses:\n    " + "\n    ".join(sc.misses))
     if a.json:

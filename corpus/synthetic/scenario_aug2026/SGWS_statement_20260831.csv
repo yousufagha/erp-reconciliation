@@ -1,0 +1,6 @@
+Supplier,Southern Gas & Welding Supplies Pty Ltd,ABN,56 451 673 411
+Customer,Ridgeline Steel Fabrications Pty Ltd,Statement date,2026-08-31
+Trans Date,Reference,Description,Debit,Credit,Balance
+2026-08-18,SG-77120,Invoice,1966.80,,1966.80
+2026-08-29,RA-9003,Payment received - thank you,,1000.00,966.80
+,,Closing balance,,,966.80

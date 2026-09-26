@@ -1,0 +1,380 @@
+{
+  "source": "https://github.com/invoice-x/invoice2data/tree/master/tests/compare",
+  "licence": "MIT",
+  "note": "Header answers as published by invoice2data. PNGs are page renders of the same PDFs.",
+  "documents": [
+    {
+      "id": "AmazonWebServices.pdf",
+      "files": [
+        "AmazonWebServices.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "Amazon Web Services",
+        "doc_number": "42183017",
+        "date": "2014-08-03",
+        "total": 4.11,
+        "subtotal": 4.11
+      },
+      "lines": [
+        {
+          "description": "AWS Data Transfer",
+          "unit_price": "0.01"
+        },
+        {
+          "description": "Amazon Elastic Compute Cloud",
+          "unit_price": "1.87"
+        },
+        {
+          "description": "Amazon Glacier",
+          "unit_price": "2.22"
+        },
+        {
+          "description": "Amazon Simple Storage Service",
+          "unit_price": "0.01"
+        }
+      ]
+    },
+    {
+      "id": "AmazonWebServices.png",
+      "files": [
+        "AmazonWebServices.png"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "image",
+      "fields": {
+        "supplier_name": "Amazon Web Services",
+        "doc_number": "42183017",
+        "date": "2014-08-03",
+        "total": 4.11,
+        "subtotal": 4.11
+      },
+      "lines": [
+        {
+          "description": "AWS Data Transfer",
+          "unit_price": "0.01"
+        },
+        {
+          "description": "Amazon Elastic Compute Cloud",
+          "unit_price": "1.87"
+        },
+        {
+          "description": "Amazon Glacier",
+          "unit_price": "2.22"
+        },
+        {
+          "description": "Amazon Simple Storage Service",
+          "unit_price": "0.01"
+        }
+      ]
+    },
+    {
+      "id": "AzureInterior.pdf",
+      "files": [
+        "AzureInterior.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "Azure Interior",
+        "doc_number": "INV/2023/03/0008",
+        "date": "2023-03-20",
+        "total": 279.84,
+        "subtotal": 262.9
+      },
+      "lines": [
+        {
+          "description": "Beeswax XL\nAcme beeswax",
+          "quantity": 1.0,
+          "unit_price": 42.0,
+          "amount": 42.0
+        },
+        {
+          "description": "Office Chair",
+          "quantity": 1.0,
+          "unit_price": 70.0,
+          "amount": 70.0
+        },
+        {
+          "description": "Olive Oil",
+          "quantity": 1.0,
+          "unit_price": 1.0,
+          "amount": 0.9
+        },
+        {
+          "description": "Luxury Truffles",
+          "quantity": 15.0,
+          "unit_price": 10.0,
+          "amount": 150.0
+        }
+      ]
+    },
+    {
+      "id": "FlipkartInvoice.pdf",
+      "files": [
+        "FlipkartInvoice.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "Flipkart",
+        "doc_number": "#BLR_WFLD20151000982590",
+        "date": "2015-10-20",
+        "total": 319.0
+      },
+      "lines": []
+    },
+    {
+      "id": "FlipkartInvoice.png",
+      "files": [
+        "FlipkartInvoice.png"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "image",
+      "fields": {
+        "supplier_name": "Flipkart",
+        "doc_number": "#BLR_WFLD20151000982590",
+        "date": "2015-10-20",
+        "total": 319.0
+      },
+      "lines": []
+    },
+    {
+      "id": "NetpresseInvoice.pdf",
+      "files": [
+        "NetpresseInvoice.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "NETPRESSE",
+        "doc_number": "2022089083",
+        "date": "2022-11-28",
+        "total": 56.02,
+        "subtotal": 46.68
+      },
+      "lines": []
+    },
+    {
+      "id": "QualityHosting.pdf",
+      "files": [
+        "QualityHosting.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "QualityHosting AG",
+        "doc_number": "30064443",
+        "date": "2014-05-07",
+        "total": 34.73,
+        "subtotal": 34.73
+      },
+      "lines": []
+    },
+    {
+      "id": "coolblue1.pdf",
+      "files": [
+        "coolblue1.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "Coolblue B.V.",
+        "doc_number": "993548900",
+        "date": "2014-04-19",
+        "total": 717.97,
+        "subtotal": 593.36
+      },
+      "lines": [
+        {
+          "description": "Apple iPad Air Wifi 16 GB Zilver",
+          "quantity": 1,
+          "unit_price": 399.0,
+          "amount": 399.0
+        },
+        {
+          "description": "Decoded Leather Slim Cover Apple iPad Air 2 Zwart",
+          "quantity": 1,
+          "unit_price": 69.99,
+          "amount": 69.99
+        },
+        {
+          "description": "Nintendo 3DS XL Wit + Blauw",
+          "quantity": 1,
+          "unit_price": 189.0,
+          "amount": 189.0
+        },
+        {
+          "description": "Nintendo AC-adapter",
+          "quantity": 1,
+          "unit_price": 14.99,
+          "amount": 14.99
+        },
+        {
+          "description": "Mario Kart 7 3DS",
+          "quantity": 1,
+          "unit_price": 44.99,
+          "amount": 44.99
+        },
+        {
+          "description": "Incl. Thuiskopieheffing: Thuiskopie \u20ac3.50",
+          "quantity": 1,
+          "amount": 4.24
+        }
+      ]
+    },
+    {
+      "id": "coolblue2.pdf",
+      "files": [
+        "coolblue2.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "Coolblue B.V.",
+        "doc_number": "992288600",
+        "date": "2014-03-29",
+        "total": 4904.94,
+        "subtotal": 4053.67
+      },
+      "lines": [
+        {
+          "description": "Decoded Leather Sleeve 15,4'' Vintage Bruin",
+          "quantity": 2,
+          "unit_price": 99.99,
+          "amount": 199.98
+        },
+        {
+          "description": "Apple MacBook Pro Retina 13,3'' + Apple Magic Mouse",
+          "quantity": 1,
+          "unit_price": 2321.0,
+          "amount": 2321.0
+        },
+        {
+          "description": "Microsoft Office Mac Home and Student 2011 NL PKC",
+          "quantity": 1,
+          "unit_price": 124.99,
+          "amount": 124.99
+        },
+        {
+          "description": "HP USB 3.0 Port Replicator 3005pr (H1L08ET)",
+          "quantity": 1,
+          "unit_price": 159.99,
+          "amount": 159.99
+        },
+        {
+          "description": "MSI GS60 2QE-226NL Ghost Pro",
+          "quantity": 1,
+          "unit_price": 1999.0,
+          "amount": 1999.0
+        },
+        {
+          "description": "Hex Outpost Origin Rugzak 15'' Grijs",
+          "quantity": 1,
+          "unit_price": 79.99,
+          "amount": 79.99
+        },
+        {
+          "description": "Case-Mate Barely There Case Sony Xperia Z3 Transparant",
+          "quantity": 1,
+          "unit_price": 19.99,
+          "amount": 19.99
+        },
+        {
+          "description": "Incl. Thuiskopieheffing: Thuiskopie \u20ac3.50",
+          "quantity": 1,
+          "amount": 4.24
+        }
+      ]
+    },
+    {
+      "id": "free_fiber.pdf",
+      "files": [
+        "free_fiber.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "Free",
+        "doc_number": "562044387",
+        "date": "2015-07-02",
+        "total": 29.99,
+        "subtotal": 24.99
+      },
+      "lines": []
+    },
+    {
+      "id": "oyo.pdf",
+      "files": [
+        "oyo.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "OYO",
+        "doc_number": "IBZY2087",
+        "date": "2017-12-31",
+        "total": 1939.0
+      },
+      "lines": []
+    },
+    {
+      "id": "oyo.png",
+      "files": [
+        "oyo.png"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "image",
+      "fields": {
+        "supplier_name": "OYO",
+        "doc_number": "IBZY2087",
+        "date": "2017-12-31",
+        "total": 1939.0
+      },
+      "lines": []
+    },
+    {
+      "id": "saeco.pdf",
+      "files": [
+        "saeco.pdf"
+      ],
+      "pages": null,
+      "doc_type": "supplier_invoice",
+      "format": "pdf_text",
+      "fields": {
+        "supplier_name": "e-Luscious Nederland B.V.",
+        "doc_number": "VF1005193039",
+        "date": "2022-09-08",
+        "total": 49.99,
+        "subtotal": 41.31
+      },
+      "lines": [
+        {
+          "description": "Onderhoudsset CA6707/10",
+          "quantity": 1.0,
+          "unit_price": 49.99,
+          "amount": 49.99
+        },
+        {
+          "description": "SX Flyer SAECO Korting KVDNL",
+          "quantity": 1.0,
+          "unit_price": 0.0,
+          "amount": 0.0
+        }
+      ]
+    }
+  ]
+}

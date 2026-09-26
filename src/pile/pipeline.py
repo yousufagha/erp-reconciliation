@@ -25,8 +25,9 @@ def load_context(folder: Path) -> Context:
     """The buyer is the CRM's own company, so it is configuration, not something to read."""
     p = folder / "context.json"
     if p.exists():
-        c = json.loads(p.read_text()).get("buyer", {})
-        return Context(buyer_name=c.get("name"), buyer_abn=c.get("abn"))
+        data = json.loads(p.read_text())
+        c = data.get("buyer", {})
+        return Context(buyer_name=c.get("name"), buyer_abn=c.get("abn"), suppliers=data.get("suppliers", []))
     return Context()
 
 

@@ -9,7 +9,7 @@ is what stops generic labels like "No" or "Total" from grabbing sentences.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from .labels import (COLUMN_LABELS, HEADER_LABELS, LEGAL_ENTITY, TOTAL_ROW, TYPE_NUMBER_LABELS,
@@ -27,6 +27,7 @@ TOTAL_FIELDS = {"subtotal", "gst", "total", "closing_balance"}
 class Context:
     buyer_name: str | None = None
     buyer_abn: str | None = None
+    suppliers: list[dict] = field(default_factory=list)   # the CRM's supplier list: name, abn, aliases
 
 
 # ------------------------------------------------------------------ validators
@@ -75,6 +76,12 @@ def _labels_for(field: str, doc_type: DocType) -> list[str]:
 
 def header_candidates(grid: Grid, doc_type: DocType, fields: tuple[str, ...]):
     """Yields (field, value, rank, row_index) for every label hit that validates."""
+    for field, val, rank, ri, _raw in header_candidates_raw(grid, doc_type, fields):
+        yield field, val, rank, ri
+
+
+def header_candidates_raw(grid: Grid, doc_type: DocType, fields: tuple[str, ...]):
+    """As header_candidates, plus the text exactly as printed."""
     rows = grid.rows
     for ri, row in enumerate(rows):
         texts = row.texts
@@ -99,7 +106,7 @@ def header_candidates(grid: Grid, doc_type: DocType, fields: tuple[str, ...]):
                 for opt in options:
                     val = validate(field, opt)
                     if val not in (None, ""):
-                        yield field, val, rank, ri
+                        yield field, val, rank, ri, cell_text(opt)
                         break
 
 
@@ -256,50 +263,61 @@ def _same_party(a: str | None, b: str | None) -> bool:
     return bool(na) and (na == nb or na in nb or nb in na)
 
 
-def infer_parties(grid: Grid, doc_type: DocType, ctx: Context, found: dict[str, Any]) -> dict[str, Any]:
+def infer_parties(grid: Grid, doc_type: DocType, ctx: Context, found: dict[str, Any]
+                  ) -> tuple[dict[str, Any], dict[str, str]]:
+    """Who issued the document and who it is addressed to, with the evidence for each.
+
+    Evidence, strongest first. A name is never taken from "the first line on the page":
+      master  the supplier's ABN or name on the page matches the CRM's supplier list
+      label   printed next to a label such as "Supplier:" or "Payee:"
+      layout  a company-looking line in the letterhead, outside the addressee block.
+              Accepted, but marked so the gate flags it for a person to confirm.
+    """
     out: dict[str, Any] = {}
+    ev: dict[str, str] = {}
     text = grid.text
     buyer_present = bool(ctx.buyer_name) and norm(LEGAL_ENTITY.sub("", ctx.buyer_name)) in norm(text)
     if buyer_present:
-        out["buyer_name"] = ctx.buyer_name
+        out["buyer_name"], ev["buyer_name"] = ctx.buyer_name, "master"
     elif found.get("buyer_name"):
-        out["buyer_name"] = found["buyer_name"]
+        out["buyer_name"], ev["buyer_name"] = found["buyer_name"], "label"
 
-    labelled = found.get("supplier_name")
-    if labelled and _same_party(labelled, ctx.buyer_name):
-        labelled = None
-    supplier = None
-    if doc_type in (DocType.PURCHASE_ORDER, DocType.REMITTANCE) or labelled:
-        supplier = labelled
-    if not supplier:
-        nonblank = [r for r in grid.rows if not r.is_blank]
-        buyer_block: set[int] = set()
-        for i, row in enumerate(nonblank[:30]):
-            if any(BUYER_BLOCK.match(t) for t in row.texts):
-                buyer_block.update(range(i, i + 4))
-        for i, row in enumerate(nonblank[:14]):
-            if i in buyer_block:
-                continue
-            for t in row.texts:
-                t2 = re.sub(r"^(from|supplier|sold by|payee)\s*[:\-]\s*", "", t, flags=re.I).strip()
-                cand = t2.split("  ")[0].split(" | ")[0].strip()
-                cand = re.split(r"\s+(?:ABN|A\.B\.N\.|ACN)\b", cand)[0].strip(" ,")
-                if _looks_like_company(cand) and not _same_party(cand, ctx.buyer_name):
-                    supplier = cand
-                    break
-            if supplier:
-                break
-    if not supplier:
-        first = next((t for r in grid.rows for t in r.texts
-                      if t and not _is_label(t) and not BUYER_BLOCK.match(t) and not TITLE_WORDS.search(t)), None)
-        if first and not _same_party(first, ctx.buyer_name) and _name(first):
-            supplier = _name(first)
-    if supplier:
-        out["supplier_name"] = supplier
-    abns = [a for a in find_abns(text) if re.sub(r"\D", "", a) != re.sub(r"\D", "", ctx.buyer_abn or "")]
+    buyer_abn = re.sub(r"\D", "", ctx.buyer_abn or "")
+    abns = [a for a in find_abns(text) if re.sub(r"\D", "", a) != buyer_abn]
     if abns:
-        out["supplier_abn"] = abns[0]
-    return out
+        out["supplier_abn"], ev["supplier_abn"] = abns[0], "label"
+
+    # 1. the CRM's supplier list
+    for sup in ctx.suppliers:
+        sabn = re.sub(r"\D", "", sup.get("abn") or "")
+        names = [sup["name"]] + list(sup.get("aliases", []))
+        if (sabn and any(re.sub(r"\D", "", a) == sabn for a in abns)) or any(
+                norm(LEGAL_ENTITY.sub("", n)) and norm(LEGAL_ENTITY.sub("", n)) in norm(text) for n in names):
+            out["supplier_name"], ev["supplier_name"] = sup["name"], "master"
+            return out, ev
+    # 2. a labelled name
+    labelled = found.get("supplier_name")
+    if labelled and not _same_party(labelled, ctx.buyer_name):
+        out["supplier_name"], ev["supplier_name"] = labelled, "label"
+        return out, ev
+    if doc_type in (DocType.PURCHASE_ORDER, DocType.REMITTANCE):
+        return out, ev          # the issuer is the buyer; the supplier must be labelled
+    # 3. letterhead: a company-looking line outside the addressee block
+    nonblank = [r for r in grid.rows if not r.is_blank]
+    buyer_block: set[int] = set()
+    for i, row in enumerate(nonblank[:30]):
+        if any(BUYER_BLOCK.match(t) for t in row.texts):
+            buyer_block.update(range(i, i + 4))
+    for i, row in enumerate(nonblank[:14]):
+        if i in buyer_block:
+            continue
+        for t in row.texts:
+            cand = re.split(r"\s+(?:ABN|A\.B\.N\.|ACN)\b", t.split("  ")[0].split(" | ")[0].strip())[0].strip(" ,")
+            if _looks_like_company(cand) and not _same_party(cand, ctx.buyer_name) \
+                    and not cand.lower().startswith(("attn", "c/o")):
+                out["supplier_name"], ev["supplier_name"] = cand, "layout"
+                return out, ev
+    return out, ev
 
 
 TITLE_WORDS = re.compile(r"\b(invoice|receipt|statement|docket|credit note|purchase order|remittance|factuur|"
@@ -332,7 +350,8 @@ def extract(grid: Grid, doc_type: DocType, ctx: Context | None = None, source: s
             table_end = max(table_end, end)
 
     best: dict[str, tuple[int, int, Any]] = {}
-    for field, val, rank, ri in header_candidates(grid, doc_type, search):
+    printed: dict[str, str] = {}
+    for field, val, rank, ri, raw in header_candidates_raw(grid, doc_type, search):
         if field in TOTAL_FIELDS - {"closing_balance"} and table_end >= 0 and ri < table_end:
             continue                        # invoice totals live after the lines
         if field not in TOTAL_FIELDS and table_end >= 0 and table_start <= ri < table_end:
@@ -340,8 +359,9 @@ def extract(grid: Grid, doc_type: DocType, ctx: Context | None = None, source: s
         key = (rank, ri if field not in TOTAL_FIELDS else -ri if field == "closing_balance" else ri)
         if field not in best or key < best[field][:2]:
             best[field] = (key[0], key[1], val)
+            printed[field] = raw
     found = {f: v for f, (_, _, v) in best.items()}
-    parties = infer_parties(grid, doc_type, ctx, found)
+    parties, party_evidence = infer_parties(grid, doc_type, ctx, found)
     found.pop("supplier_name", None)
     found.pop("buyer_name", None)
     found.update(parties)
@@ -349,7 +369,8 @@ def extract(grid: Grid, doc_type: DocType, ctx: Context | None = None, source: s
     if doc_type == DocType.STATEMENT and "closing_balance" not in found and lines:
         pass  # left for validation to flag; a statement without a stated closing balance is suspicious
 
-    fields = {f: FieldValue(v, source=source) for f, v in found.items() if f in wanted}
+    fields = {f: FieldValue(v, source=source, evidence=party_evidence.get(f, "label"), printed=printed.get(f))
+              for f, v in found.items() if f in wanted}
     return fields, _shape_lines(lines, doc_type)
 
 

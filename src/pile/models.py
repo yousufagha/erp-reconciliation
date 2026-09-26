@@ -75,6 +75,8 @@ class FieldValue:
     source: str = ""                  # which reader produced it
     grounded: bool | None = None      # located on the page as an exact token
     blocked_on: str | None = None     # "corroboration" | "extraction_quality"
+    evidence: str = ""                # why we believe it: label | master | layout | structure | model
+    printed: str | None = None        # the text exactly as it appeared on the page
 
 
 @dataclass
@@ -102,8 +104,8 @@ class ReadDocument:
             "doc_type": self.doc_type.value,
             "fields": {k: v.value for k, v in self.fields.items()},
             "field_meta": {
-                k: {"confidence": v.confidence, "source": v.source,
-                    "grounded": v.grounded, "blocked_on": v.blocked_on}
+                k: {"confidence": v.confidence, "source": v.source, "evidence": v.evidence,
+                    "printed": v.printed, "grounded": v.grounded, "blocked_on": v.blocked_on}
                 for k, v in self.fields.items()
             },
             "lines": self.lines,

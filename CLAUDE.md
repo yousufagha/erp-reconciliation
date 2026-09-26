@@ -99,7 +99,8 @@ docs/                          everything else; start at docs/00-index.md
 
 Steps 0 to 5 built; step 6 (report) has a first version. The model path has never been run
 live (the build environment could not reach Google). Current numbers and known gaps are in
-`docs/06-evaluation.md` and `docs/07-open-questions.md`.
+`docs/06-evaluation.md` and `docs/07-open-questions.md`. **The plan of record is
+`docs/10-next-phase.md`.**
 
 ## Before you change something
 

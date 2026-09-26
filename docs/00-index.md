@@ -10,6 +10,7 @@ Read in this order if you are new.
 | 05 | [Decisions](05-decisions.md) | Why it is built this way; what was tried and rejected |
 | 06 | [Evaluation](06-evaluation.md) | How it is measured, current numbers, adding the client's pack |
 | 07 | [Open questions and gaps](07-open-questions.md) | What is not known or not built, in priority order |
+| 10 | [Next phase](10-next-phase.md) | The plan from here: streams A to E, gates, costs, risks |
 | 01 | [Research and approach](01-research-approach.md) | Evidence behind the approach, with sources |
 | 02 | [Model testing on the Mac](02-model-testing.md) | Running the free Gemini path, one tool at a time |
 | 08 | [Glossary](08-glossary.md) | GRN, docket, pendency, PINT A-NZ and the rest |

@@ -89,6 +89,7 @@ class ReadDocument:
     notes: list[str] = field(default_factory=list)
     checks: list = field(default_factory=list)           # validate.Check
     printed_label: str = ""
+    raw_text: str = ""                                   # kept for joining; not written out
 
     def value(self, name: str) -> Any:
         fv = self.fields.get(name)

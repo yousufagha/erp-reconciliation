@@ -15,6 +15,7 @@ from .intake import Item, intake
 from .models import DocType, FieldValue, ReadDocument, SourceRef
 from .profile import profile
 from . import validate
+from .segment import join_continuations
 from .readers.ubl import read_ubl
 
 GRID_BUILDERS = {"xlsx": layout.from_xlsx, "csv": layout.from_csv, "docx": layout.from_docx, "text": layout.from_text}
@@ -48,7 +49,7 @@ def read_item(item: Item, ctx: Context) -> list[ReadDocument]:
 def from_grid(grid, src, ctx, reader: str) -> ReadDocument:
     cls = classify(grid)
     fields, lines = extract(grid, cls.doc_type, ctx, source=reader)
-    doc = ReadDocument(src, cls.doc_type, fields, lines, reader=reader, printed_label=cls.evidence,
+    doc = ReadDocument(src, cls.doc_type, fields, lines, reader=reader, printed_label=cls.evidence, raw_text=grid.text,
                        notes=[f"type from printed label: {cls.evidence!r}"])
     if cls.doc_type == DocType.UNKNOWN:
         doc.status = "held"
@@ -90,6 +91,7 @@ def run(folder: Path) -> list[ReadDocument]:
             continue
         seen[it.sha256] = it.ref
         docs.extend(read_item(it, ctx))
+    docs = join_continuations(docs)
     for d in docs:
         gate(d, ctx)
     _flag_same_document(docs)

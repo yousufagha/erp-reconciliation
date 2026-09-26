@@ -72,9 +72,20 @@ def read_pdf(item, prof, ctx) -> list[ReadDocument]:
     if not prof.text_pages:
         return [ReadDocument([SourceRef(item.ref)], DocType.UNKNOWN, reader="none", status="held",
                              notes=["scanned or photographed PDF: no text layer; needs a model or a person"])]
+    from .segment import CONTINUED, split_pages
     grid = pdf_grid(item.data, prof.text_pages, item.ref)
-    pages = prof.text_pages if prof.pages > 1 else None
-    doc = from_grid(grid, [SourceRef(item.ref, pages)], ctx, reader="pdf_text")
+    groups, why = split_pages(grid, prof.text_pages)
+    docs = []
+    for group in groups:
+        sub = Grid([r for r in grid.rows if r.page in group], pages=len(group), source=item.ref)
+        pages = group if prof.pages > 1 else None
+        doc = from_grid(sub, [SourceRef(item.ref, pages)], ctx, reader="pdf_text")
+        first_page = Grid(sub.page_rows(group[0]))
+        if CONTINUED.search(first_page.text):
+            doc.notes.append("continuation")
+        docs.append(doc)
+    if why:
+        docs[0].notes += why
     if prof.image_pages:
-        doc.notes.append(f"pages {prof.image_pages} have no text layer and were not read")
-    return [doc]
+        docs[-1].notes.append(f"pages {prof.image_pages} have no text layer and were not read")
+    return docs

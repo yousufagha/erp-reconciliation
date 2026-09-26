@@ -1065,7 +1065,7 @@
     {
       "id": "RA-9003",
       "files": [
-        "remittance_RA-9003.eml"
+        "remittance_RA-9003.eml#body"
       ],
       "pages": null,
       "doc_type": "remittance",

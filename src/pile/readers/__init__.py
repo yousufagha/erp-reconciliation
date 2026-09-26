@@ -14,4 +14,9 @@ def trivial(folder: Path) -> list[ReadDocument]:
             for it in intake(folder)]
 
 
-READERS: dict[str, Callable[[Path], list[ReadDocument]]] = {"trivial": trivial}
+def pipeline(folder: Path) -> list[ReadDocument]:
+    from ..pipeline import run
+    return run(folder)
+
+
+READERS: dict[str, Callable[[Path], list[ReadDocument]]] = {"trivial": trivial, "pipeline": pipeline}

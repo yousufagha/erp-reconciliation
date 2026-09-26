@@ -1,0 +1,88 @@
+"""The pile, end to end: intake -> dedupe -> profile -> read -> classify -> extract.
+
+Stages not built yet hold the document for a person and say why, rather than
+guessing. A held document is counted, never silently dropped.
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from . import layout
+from .classify import classify
+from .extract import Context, extract
+from .intake import Item, intake
+from .models import DocType, FieldValue, ReadDocument, SourceRef
+from .profile import profile
+from .readers.ubl import read_ubl
+
+GRID_BUILDERS = {"xlsx": layout.from_xlsx, "csv": layout.from_csv, "docx": layout.from_docx, "text": layout.from_text}
+
+
+def load_context(folder: Path) -> Context:
+    """The buyer is the CRM's own company, so it is configuration, not something to read."""
+    p = folder / "context.json"
+    if p.exists():
+        c = json.loads(p.read_text()).get("buyer", {})
+        return Context(buyer_name=c.get("name"), buyer_abn=c.get("abn"))
+    return Context()
+
+
+def read_item(item: Item, ctx: Context) -> list[ReadDocument]:
+    prof = profile(item)
+    src = [SourceRef(item.ref)]
+    if prof.kind == "ubl":
+        dt, fields, lines = read_ubl(item.data)
+        return [ReadDocument(src, dt, fields, lines, reader="ubl")]
+    if prof.kind in GRID_BUILDERS:
+        grid = GRID_BUILDERS[prof.kind](item.data, item.ref)
+        return [_from_grid(grid, src, ctx, reader=prof.kind)]
+    if prof.kind == "pdf":
+        from .pdf_text import read_pdf           # step 2
+        return read_pdf(item, prof, ctx)
+    reason = prof.note or f"{prof.kind}: no reader yet"
+    return [ReadDocument(src, DocType.UNKNOWN, reader="none", status="held", notes=[reason])]
+
+
+def _from_grid(grid, src, ctx, reader: str) -> ReadDocument:
+    cls = classify(grid)
+    fields, lines = extract(grid, cls.doc_type, ctx, source=reader)
+    doc = ReadDocument(src, cls.doc_type, fields, lines, reader=reader,
+                       notes=[f"type from printed label: {cls.evidence!r}"])
+    if cls.doc_type == DocType.UNKNOWN:
+        doc.status = "held"
+        doc.notes.append("no document type printed; needs a model or a person")
+    return doc
+
+
+def run(folder: Path) -> list[ReadDocument]:
+    ctx = load_context(folder)
+    items = intake(folder)
+    seen: dict[str, str] = {}
+    docs: list[ReadDocument] = []
+    for it in items:
+        # dedupe before reading: reading is the expensive step, hashing costs nothing
+        if it.sha256 in seen:
+            first = seen[it.sha256]
+            docs.append(ReadDocument([SourceRef(it.ref)], reader="dedupe", status="duplicate",
+                                     notes=[f"byte-identical to {first}"]))
+            continue
+        seen[it.sha256] = it.ref
+        docs.extend(read_item(it, ctx))
+    _flag_same_document(docs)
+    return docs
+
+
+def _flag_same_document(docs: list[ReadDocument]) -> None:
+    """Different bytes, same business document (re-sent, re-scanned, photographed)."""
+    by_key: dict[tuple, ReadDocument] = {}
+    for d in docs:
+        num = d.value("doc_number")
+        if not num or d.doc_type == DocType.UNKNOWN:
+            continue
+        key = (d.doc_type.value, str(d.value("supplier_name") or "").casefold()[:12], str(num).casefold())
+        if key in by_key:
+            d.notes.append(f"same document as {by_key[key].sources[0].file}")
+            d.fields.setdefault("duplicate_of", FieldValue(by_key[key].sources[0].file, source="dedupe"))
+        else:
+            by_key[key] = d

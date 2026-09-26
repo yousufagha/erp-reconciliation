@@ -586,6 +586,7 @@ def write_xlsx_grn(path: Path, r: Receipt):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "GRN"
+    ws.append([BUYER.name])
     ws.append(["Goods Received Note", r.number])
     ws.append(["Supplier", SUP[r.supplier].name])
     ws.append(["PO Number", r.po])
@@ -906,7 +907,7 @@ def main() -> None:
             "\n".join(f"{ref}    {money(a)}" for ref, a in p.allocations) +
             f"\n\nTotal paid: {money(p.total)}\nPart payment, balance to follow.\n\nRidgeline Accounts")
     write_eml(OUT / "remittance_RA-9003.eml", BUYER.email, SUP["S4"].email, f"Payment {p.number}", body, D(29))
-    add(["remittance_RA-9003.eml"], "remittance", "eml_body", *remit_truth(p))
+    add(["remittance_RA-9003.eml#body"], "remittance", "eml_body", *remit_truth(p))
 
     # --- price schedule and a document that is none of the eight types
     build_pdf(OUT / "Harbourline_price_schedule_H2-2026.pdf", price_schedule_story())
@@ -921,6 +922,8 @@ def main() -> None:
              "buyer": {"name": BUYER.name, "abn": BUYER.abn},
              "suppliers": {k: {"name": v.name, "abn": v.abn} for k, v in SUP.items()},
              "documents": docs, "reconciliation": reconciliation_truth()}
+    (OUT / "context.json").write_text(json.dumps({"buyer": {"name": BUYER.name, "abn": BUYER.abn},
+                                                  "note": "The CRM's own company. Configuration, not a document."}, indent=2))
     (OUT / "truth.json").write_text(json.dumps(truth, indent=2, default=str))
     files = sorted(p.name for p in OUT.iterdir() if p.name != "truth.json")
     print(f"{len(files)} files, {len(docs)} documents -> {OUT}")

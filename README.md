@@ -17,8 +17,8 @@ verdict.
 | Step | What | State |
 |---|---|---|
 | 0 | Repo, test corpus, scoring harness | done |
-| 1 | Intake, dedupe, profile, exact formats (UBL, XLSX, CSV, DOCX, email) | next |
-| 2 | Text-layer PDFs, classification, per-type schemas and checks | |
+| 1 | Intake, dedupe, profile, exact formats (UBL, XLSX, CSV, DOCX, email) | done |
+| 2 | Text-layer PDFs, classification, per-type schemas and checks | next |
 | 3 | Splitting and joining documents | |
 | 4 | Chain assembly and the three pendency registers | |
 | 5 | Model reading for scans and photos (Gemini free tier for testing) | |

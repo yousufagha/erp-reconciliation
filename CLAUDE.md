@@ -63,7 +63,8 @@ python corpus/synthetic/generate.py   # regenerate the synthetic pack and its tr
 ```
 
 `GEMINI_API_KEY` enables the model path for images and scans (`docs/02-model-testing.md`).
-Tesseract (`brew install tesseract`) enables grounding; without it every model read is held.
+Tesseract (`brew install tesseract`, then `uv pip install -e ".[ocr]"`) enables grounding;
+without it every model read is held.
 
 ## Map
 

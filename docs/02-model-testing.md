@@ -30,6 +30,7 @@ Check: `37 passed, 6 skipped` (the six that need Tesseract wait for step 2).
 
 ```bash
 brew install tesseract
+uv pip install -e ".[ocr]"        # the Python wrapper, pytesseract
 tesseract --version
 pytest -q
 ```

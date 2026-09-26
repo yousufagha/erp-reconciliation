@@ -24,7 +24,7 @@ uv pip install -e ".[dev,gemini]"
 pytest -q
 ```
 
-Check: `32 passed, 5 skipped` (the five that need Tesseract wait for step 2).
+Check: `37 passed, 6 skipped` (the six that need Tesseract wait for step 2).
 
 ## 2. Tesseract (the independent reading used for grounding)
 
@@ -34,7 +34,7 @@ tesseract --version
 pytest -q
 ```
 
-Check: a version prints and `pytest -q` shows `37 passed`. Without Tesseract every model reading is
+Check: a version prints and `pytest -q` shows `43 passed`. Without Tesseract every model reading is
 held, by design: a value that cannot be found on the page is never accepted.
 
 ## 3. Gemini key

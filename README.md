@@ -10,7 +10,9 @@ format it arrives, and reports the status of the paperwork and the goods:
 
 Built as a plain Python library with a command line, so it can sit inside the host CRM's
 codebase whatever its stack. The model reads; deterministic code does every sum, match and
-verdict.
+verdict. Nothing is accepted as fact without evidence on the page.
+
+**New here (person or Claude)? Read [`CLAUDE.md`](CLAUDE.md), then [`docs/00-index.md`](docs/00-index.md).**
 
 ## Status
 
@@ -21,7 +23,8 @@ verdict.
 | 2 | Text-layer PDFs, classification, per-type schemas and checks | done |
 | 3 | Splitting and joining documents | done |
 | 4 | Chain assembly and the three pendency registers | done |
-| 5 | Model reading for scans and photos (Gemini free tier for testing) | built; live run pending on the Mac, see docs/02-model-testing.md |
+| 5 | Model reading for scans and photos (Gemini free tier for testing) | built; live run pending, see docs/02-model-testing.md |
+| + | No-guess hardening: evidence per field, ambiguous dates, full line grounding | done: 0 wrong values accepted on both corpora |
 | 6 | Status report (`pile status <folder>`) | first version |
 
 ## Test corpus

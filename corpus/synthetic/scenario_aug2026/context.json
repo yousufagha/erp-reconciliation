@@ -3,5 +3,23 @@
     "name": "Ridgeline Steel Fabrications Pty Ltd",
     "abn": "67 379 451 786"
   },
-  "note": "The CRM's own company. Configuration, not a document."
+  "suppliers": [
+    {
+      "name": "Harbourline Steel Supply Pty Ltd",
+      "abn": "30 641 119 820"
+    },
+    {
+      "name": "Boltmaster Fasteners Pty Ltd",
+      "abn": "56 188 533 565"
+    },
+    {
+      "name": "Coastal Coatings Pty Ltd",
+      "abn": "35 589 324 128"
+    },
+    {
+      "name": "Southern Gas & Welding Supplies Pty Ltd",
+      "abn": "56 451 673 411"
+    }
+  ],
+  "note": "What the CRM already knows: its own company and its supplier list. Configuration, not documents."
 }

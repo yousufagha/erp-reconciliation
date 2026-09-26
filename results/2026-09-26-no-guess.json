@@ -1,0 +1,531 @@
+{
+  "corpus/synthetic/scenario_aug2026": {
+    "documents": {
+      "right": 34,
+      "total": 34,
+      "pct": 100.0
+    },
+    "doc_type": {
+      "right": 34,
+      "total": 34,
+      "pct": 100.0
+    },
+    "headers": {
+      "right": 212,
+      "total": 223,
+      "pct": 95.1
+    },
+    "lines": {
+      "right": 229,
+      "total": 269,
+      "pct": 85.1
+    },
+    "packets_zero_corrections": {
+      "right": 3,
+      "total": 3,
+      "pct": 100.0
+    },
+    "held": 5,
+    "by_field": {
+      "buyer_name": {
+        "right": 23,
+        "total": 24,
+        "pct": 95.8
+      },
+      "closing_balance": {
+        "right": 3,
+        "total": 3,
+        "pct": 100.0
+      },
+      "date": {
+        "right": 31,
+        "total": 32,
+        "pct": 96.9
+      },
+      "delivery_date": {
+        "right": 8,
+        "total": 8,
+        "pct": 100.0
+      },
+      "doc_number": {
+        "right": 29,
+        "total": 30,
+        "pct": 96.7
+      },
+      "effective_from": {
+        "right": 1,
+        "total": 1,
+        "pct": 100.0
+      },
+      "effective_to": {
+        "right": 1,
+        "total": 1,
+        "pct": 100.0
+      },
+      "gst": {
+        "right": 18,
+        "total": 19,
+        "pct": 94.7
+      },
+      "line.amount": {
+        "right": 49,
+        "total": 52,
+        "pct": 94.2
+      },
+      "line.description": {
+        "right": 41,
+        "total": 55,
+        "pct": 74.5
+      },
+      "line.quantity": {
+        "right": 42,
+        "total": 51,
+        "pct": 82.4
+      },
+      "line.reference": {
+        "right": 14,
+        "total": 14,
+        "pct": 100.0
+      },
+      "line.sku": {
+        "right": 44,
+        "total": 55,
+        "pct": 80.0
+      },
+      "line.unit_price": {
+        "right": 39,
+        "total": 42,
+        "pct": 92.9
+      },
+      "original_invoice": {
+        "right": 1,
+        "total": 1,
+        "pct": 100.0
+      },
+      "po_reference": {
+        "right": 15,
+        "total": 16,
+        "pct": 93.8
+      },
+      "subtotal": {
+        "right": 18,
+        "total": 19,
+        "pct": 94.7
+      },
+      "supplier_abn": {
+        "right": 13,
+        "total": 14,
+        "pct": 92.9
+      },
+      "supplier_name": {
+        "right": 30,
+        "total": 33,
+        "pct": 90.9
+      },
+      "total": {
+        "right": 21,
+        "total": 22,
+        "pct": 95.5
+      }
+    },
+    "by_type": {
+      "credit_note": {
+        "right": 15,
+        "total": 15,
+        "pct": 100.0
+      },
+      "goods_receipt": {
+        "right": 45,
+        "total": 69,
+        "pct": 65.2
+      },
+      "price_schedule": {
+        "right": 16,
+        "total": 16,
+        "pct": 100.0
+      },
+      "purchase_order": {
+        "right": 144,
+        "total": 144,
+        "pct": 100.0
+      },
+      "remittance": {
+        "right": 21,
+        "total": 21,
+        "pct": 100.0
+      },
+      "statement": {
+        "right": 34,
+        "total": 34,
+        "pct": 100.0
+      },
+      "supplier_invoice": {
+        "right": 166,
+        "total": 193,
+        "pct": 86.0
+      }
+    },
+    "by_format": {
+      "csv": {
+        "right": 8,
+        "total": 8,
+        "pct": 100.0
+      },
+      "docx": {
+        "right": 19,
+        "total": 19,
+        "pct": 100.0
+      },
+      "eml_attachment": {
+        "right": 31,
+        "total": 31,
+        "pct": 100.0
+      },
+      "eml_body": {
+        "right": 7,
+        "total": 7,
+        "pct": 100.0
+      },
+      "image_photo": {
+        "right": 4,
+        "total": 37,
+        "pct": 10.8
+      },
+      "pdf_scan": {
+        "right": 6,
+        "total": 17,
+        "pct": 35.3
+      },
+      "pdf_text": {
+        "right": 244,
+        "total": 249,
+        "pct": 98.0
+      },
+      "pdf_text_multipage": {
+        "right": 19,
+        "total": 19,
+        "pct": 100.0
+      },
+      "pdf_text_pack": {
+        "right": 42,
+        "total": 44,
+        "pct": 95.5
+      },
+      "pdf_text_split_files": {
+        "right": 14,
+        "total": 14,
+        "pct": 100.0
+      },
+      "ubl_xml": {
+        "right": 14,
+        "total": 14,
+        "pct": 100.0
+      },
+      "xlsx": {
+        "right": 33,
+        "total": 33,
+        "pct": 100.0
+      }
+    },
+    "misses": [
+      "HS-88214 (photo): supplier_abn = None, expected '30 641 119 820'",
+      "HS-88214 (photo): buyer_name = None, expected 'Ridgeline Steel Fabrications Pty Ltd'",
+      "HS-88214 (photo): doc_number = None, expected 'HS-88214'",
+      "HS-88214 (photo): date = None, expected '2026-08-07'",
+      "HS-88214 (photo): po_reference = '4101', expected 'PO-4101'",
+      "HS-88214 (photo): subtotal = None, expected 13263.8",
+      "HS-88214 (photo): gst = None, expected 1326.38",
+      "HS-88214 (photo): total = None, expected 14590.18",
+      "DD-55120: supplier_name = None, expected 'Harbourline Steel Supply Pty Ltd'",
+      "BF-21088: supplier_name = 'Pty Ltd', expected 'Boltmaster Fasteners Pty Ltd'",
+      "SG-3301: supplier_name = 'peels & Welding Supplies Pty Ltd', expected 'Southern Gas & Welding Supplies Pty Ltd'"
+    ],
+    "gate": {
+      "accepted": {
+        "values": 202,
+        "right": 202,
+        "wrong": 0,
+        "left_blank": 0,
+        "pct_right": 100.0,
+        "wrong_values": []
+      },
+      "flagged": {
+        "values": 0,
+        "right": 0,
+        "wrong": 0,
+        "left_blank": 0,
+        "pct_right": null,
+        "wrong_values": []
+      },
+      "total_fields": 223,
+      "coverage": 90.6,
+      "accuracy_of_what_passed": 100.0
+    },
+    "reconciliation": {
+      "invoice_to_po": {
+        "right": 9,
+        "truth": 9,
+        "wrong": {}
+      },
+      "goods_owed": {
+        "right": 4,
+        "truth": 4,
+        "predicted": 10,
+        "recall": 100.0,
+        "precision": 40.0,
+        "wrong": [],
+        "unexpected": [
+          [
+            "PO-4101",
+            "STL-UB-310-46"
+          ],
+          [
+            "PO-4101",
+            "STL-RHS-100-5G"
+          ],
+          [
+            "PO-4101",
+            "STL-PL-12-300"
+          ],
+          [
+            "PO-4104",
+            "BF-M20-CHEM"
+          ],
+          [
+            "PO-4107",
+            "SG-MIX-G"
+          ],
+          [
+            "PO-4107",
+            "SG-ER70-09"
+          ]
+        ]
+      },
+      "paperwork_owed": {
+        "right": 1,
+        "truth": 1,
+        "predicted": 1,
+        "recall": 100.0,
+        "precision": 100.0,
+        "wrong": [],
+        "unexpected": []
+      },
+      "invoiced_not_received": {
+        "right": 2,
+        "truth": 2,
+        "predicted": 8,
+        "recall": 100.0,
+        "precision": 25.0,
+        "wrong": [],
+        "unexpected": [
+          [
+            "PO-4101",
+            "STL-UB-310-46"
+          ],
+          [
+            "PO-4101",
+            "STL-RHS-100-5G"
+          ],
+          [
+            "PO-4101",
+            "STL-PL-12-300"
+          ],
+          [
+            "PO-4104",
+            "BF-M20-CHEM"
+          ],
+          [
+            "PO-4107",
+            "SG-MIX-G"
+          ],
+          [
+            "PO-4107",
+            "SG-ER70-09"
+          ]
+        ]
+      },
+      "money_owed": {
+        "right": 6,
+        "truth": 6,
+        "predicted": 6,
+        "recall": 100.0,
+        "precision": 100.0,
+        "wrong": [],
+        "unexpected": []
+      },
+      "exceptions": {
+        "right": 6,
+        "truth": 7,
+        "predicted": 9,
+        "recall": 85.7,
+        "precision": 66.7,
+        "wrong": [
+          {
+            "key": [
+              "duplicate_suspected",
+              "HS-88214"
+            ],
+            "expected": true,
+            "got": false
+          }
+        ],
+        "unexpected": [
+          [
+            "missing_receipt",
+            "HS-88214"
+          ],
+          [
+            "missing_receipt",
+            "BF-INV-30688"
+          ],
+          [
+            "missing_receipt",
+            "SG-77120"
+          ]
+        ]
+      }
+    }
+  },
+  "corpus/public/invoice2data": {
+    "documents": {
+      "right": 13,
+      "total": 13,
+      "pct": 100.0
+    },
+    "doc_type": {
+      "right": 13,
+      "total": 13,
+      "pct": 100.0
+    },
+    "headers": {
+      "right": 36,
+      "total": 61,
+      "pct": 59.0
+    },
+    "lines": {
+      "right": 12,
+      "total": 94,
+      "pct": 12.8
+    },
+    "packets_zero_corrections": {
+      "right": 0,
+      "total": 0,
+      "pct": null
+    },
+    "held": 9,
+    "by_field": {
+      "date": {
+        "right": 11,
+        "total": 13,
+        "pct": 84.6
+      },
+      "doc_number": {
+        "right": 10,
+        "total": 13,
+        "pct": 76.9
+      },
+      "line.amount": {
+        "right": 4,
+        "total": 20,
+        "pct": 20.0
+      },
+      "line.description": {
+        "right": 2,
+        "total": 28,
+        "pct": 7.1
+      },
+      "line.quantity": {
+        "right": 2,
+        "total": 20,
+        "pct": 10.0
+      },
+      "line.unit_price": {
+        "right": 4,
+        "total": 26,
+        "pct": 15.4
+      },
+      "subtotal": {
+        "right": 4,
+        "total": 9,
+        "pct": 44.4
+      },
+      "supplier_name": {
+        "right": 3,
+        "total": 13,
+        "pct": 23.1
+      },
+      "total": {
+        "right": 8,
+        "total": 13,
+        "pct": 61.5
+      }
+    },
+    "by_type": {
+      "supplier_invoice": {
+        "right": 48,
+        "total": 155,
+        "pct": 31.0
+      }
+    },
+    "by_format": {
+      "image": {
+        "right": 3,
+        "total": 21,
+        "pct": 14.3
+      },
+      "pdf_text": {
+        "right": 45,
+        "total": 134,
+        "pct": 33.6
+      }
+    },
+    "misses": [
+      "AmazonWebServices.pdf: supplier_name = None, expected 'Amazon Web Services'",
+      "AmazonWebServices.pdf: subtotal = None, expected 4.11",
+      "AmazonWebServices.png: supplier_name = None, expected 'Amazon Web Services'",
+      "AmazonWebServices.png: date = None, expected '2014-08-03'",
+      "AmazonWebServices.png: total = None, expected 4.11",
+      "AmazonWebServices.png: subtotal = None, expected 4.11",
+      "AzureInterior.pdf: supplier_name = None, expected 'Azure Interior'",
+      "AzureInterior.pdf: subtotal = 112.0, expected 262.9",
+      "FlipkartInvoice.pdf: supplier_name = 'WS Retail Services Pvt. Ltd.,', expected 'Flipkart'",
+      "FlipkartInvoice.png: supplier_name = 'WS Retail Services Pvt. Ltd.,', expected 'Flipkart'",
+      "FlipkartInvoice.png: doc_number = '20-10-2015', expected '#BLR_WFLD20151000982590'",
+      "FlipkartInvoice.png: total = None, expected 319.0",
+      "NetpresseInvoice.pdf: supplier_name = None, expected 'NETPRESSE'",
+      "QualityHosting.pdf: subtotal = None, expected 34.73",
+      "free_fiber.pdf: supplier_name = None, expected 'Free'",
+      "free_fiber.pdf: date = '2015-07-05', expected '2015-07-02'",
+      "free_fiber.pdf: total = 24.99, expected 29.99",
+      "oyo.pdf: supplier_name = None, expected 'OYO'",
+      "oyo.pdf: doc_number = None, expected 'IBZY2087'",
+      "oyo.png: supplier_name = None, expected 'OYO'",
+      "oyo.png: doc_number = None, expected 'IBZY2087'",
+      "oyo.png: total = None, expected 1939.0",
+      "saeco.pdf: supplier_name = None, expected 'e-Luscious Nederland B.V.'",
+      "saeco.pdf: total = None, expected 49.99",
+      "saeco.pdf: subtotal = None, expected 41.31"
+    ],
+    "gate": {
+      "accepted": {
+        "values": 9,
+        "right": 9,
+        "wrong": 0,
+        "left_blank": 5,
+        "pct_right": 100.0,
+        "wrong_values": []
+      },
+      "flagged": {
+        "values": 4,
+        "right": 4,
+        "wrong": 0,
+        "left_blank": 1,
+        "pct_right": 100.0,
+        "wrong_values": []
+      },
+      "total_fields": 61,
+      "coverage": 14.8,
+      "accuracy_of_what_passed": 100.0
+    }
+  }
+}

@@ -118,19 +118,21 @@ def _assemble(item, group, ocr_pages, ctx, total_pages) -> ReadDocument:
         g = ocr_mod.grounded(raw, ocrs, fuzzy=k.endswith("_name")) if ocrs else None
         agrees = None if second.get(k) is None else (str(second[k]).casefold() == str(val).casefold()
                                                      or (isinstance(val, float) and second[k] == val))
-        fields[k] = FieldValue(val, source=first.model, grounded=g,
+        fields[k] = FieldValue(val, source=first.model, grounded=g, evidence="model", printed=str(raw),
+                               blocked_on="extraction_quality" if g is False else None,
                                confidence=field_confidence(k, readability=readability, grounded=g, agrees=agrees,
                                                            arithmetic_ok=None))
     lines = []
-    ungrounded_qty = []
+    ungrounded = []
     for r in group:
-        for l in r.lines:
+        for i, l in enumerate(r.lines, 1):
             tl = _typed_line(l)
             if not tl:
                 continue
-            if ocrs and "quantity" in l:
-                if not ocr_mod.grounded(str(l["quantity"]), ocrs):
-                    ungrounded_qty.append(str(l["quantity"]))
+            # every number and code on a line must be on the page, not only the quantity
+            for key in ("quantity", "unit_price", "amount", "sku", "reference"):
+                if ocrs and l.get(key) not in (None, "") and not ocr_mod.grounded(str(l[key]), ocrs):
+                    ungrounded.append(f"line {i} {key} {l[key]!r}")
             if l.get("handwritten"):
                 tl["handwritten"] = True
             lines.append(tl)
@@ -142,9 +144,9 @@ def _assemble(item, group, ocr_pages, ctx, total_pages) -> ReadDocument:
     if dt == DocType.UNKNOWN:
         doc.status = "held"
         doc.notes.append("the model found no document type")
-    if ungrounded_qty:
+    if ungrounded:
         doc.status = "held"
-        doc.notes.append(f"quantities not found on the page: {', '.join(ungrounded_qty)}; a person must check")
+        doc.notes.append(f"not found on the page: {'; '.join(ungrounded)}; a person must check")
     return doc
 
 

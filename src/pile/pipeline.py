@@ -82,6 +82,24 @@ def gate(doc: ReadDocument, ctx: Context) -> None:
         return
     from .image_read import third_question
     third_question(doc)
+    _no_guess(doc, ctx)
+
+
+def _no_guess(doc: ReadDocument, ctx: Context) -> None:
+    """Values that rest on inference rather than on what is printed are flagged, never passed as fact."""
+    if doc.status not in ("read", "flagged"):
+        return
+    sup = doc.fields.get("supplier_name")
+    if sup is not None and sup.evidence == "layout":
+        sup.blocked_on = "corroboration"
+        doc.status = "flagged"
+        doc.notes.append(f"supplier {sup.value!r} inferred from the letterhead, not from a label or the supplier list;"
+                         " confirm it")
+    from .dates import ambiguous_dates
+    for k, why in ambiguous_dates(doc, ctx):
+        doc.fields[k].blocked_on = "extraction_quality"
+        doc.status = "flagged"
+        doc.notes.append(why)
 
 
 def run(folder: Path) -> list[ReadDocument]:

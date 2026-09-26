@@ -285,15 +285,35 @@ def score(truth: dict, preds: list[dict], gated: bool = True) -> Score:
 
 
 def gate_quality(truth: dict, preds: list[dict]) -> dict:
-    """Selective automation: of the header fields the gate let through, how many were right,
-    and how many right values did it hold back."""
-    raw, acc = score(truth, preds, gated=False), score(truth, preds, gated=True)
-    passed = sum(1 for t, p in align(truth["documents"], preds) if p is not None and p.get("status") not in ("held", "failed")
-                 for k, v in (t.get("fields") or {}).items() if v is not None)
-    return {"fields_read_correctly": raw.headers.right, "fields_total": raw.headers.total,
-            "fields_let_through": passed, "let_through_and_right": acc.headers.right,
-            "accuracy_of_what_passed": None if not passed else round(100 * acc.headers.right / passed, 1),
-            "coverage": None if not raw.headers.total else round(100 * passed / raw.headers.total, 1)}
+    """Selective automation. Header fields split by what the gate did with their document:
+    accepted as fact (status read), shown with a flag to confirm (flagged), or held."""
+    out = {}
+    pairs = align(truth["documents"], preds)
+    for label, statuses in (("accepted", ("read",)), ("flagged", ("flagged",))):
+        n = right = blank = 0
+        wrong: list[str] = []
+        for t, p in pairs:
+            if p is None or p.get("status") not in statuses:
+                continue
+            for k, v in (t.get("fields") or {}).items():
+                if v is None:
+                    continue
+                got = (p.get("fields") or {}).get(k)
+                if got in (None, ""):
+                    blank += 1                  # left empty: not a guess, just not read
+                    continue
+                n += 1
+                ok = values_match(k, v, got)
+                right += ok
+                if not ok:
+                    wrong.append(f"{t.get('id')}: {k} = {got!r}, expected {v!r}")
+        out[label] = {"values": n, "right": right, "wrong": n - right, "left_blank": blank,
+                      "pct_right": None if not n else round(100 * right / n, 1), "wrong_values": wrong}
+    total = sum(1 for t, _ in pairs for v in (t.get("fields") or {}).values() if v is not None)
+    out["total_fields"] = total
+    out["coverage"] = None if not total else round(100 * out["accepted"]["values"] / total, 1)
+    out["accuracy_of_what_passed"] = out["accepted"]["pct_right"]
+    return out
 
 
 def format_report(name: str, sc: Score) -> str:

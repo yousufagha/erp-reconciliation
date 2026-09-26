@@ -65,7 +65,12 @@ def main(argv: list[str] | None = None) -> int:
         gq = harness.gate_quality(truth, preds)
         results[str(corpus)] = sc.to_json() | {"gate": gq}
         print(harness.format_report(f"{corpus} [{a.reader}]", sc))
-        print(f"  gate: let through {gq['coverage']}% of header fields; {gq['accuracy_of_what_passed']}% of those right")
+        ac, fl = gq["accepted"], gq["flagged"]
+        print(f"  gate: accepted {ac['values']} of {gq['total_fields']} header values as fact: {ac['right']} right, "
+              f"{ac['wrong']} wrong, {ac['left_blank']} left blank rather than guessed")
+        print(f"        flagged {fl['values']} more for a person to confirm: {fl['right']} right, {fl['wrong']} wrong")
+        for w in ac["wrong_values"]:
+            print(f"        ACCEPTED BUT WRONG: {w}")
         if "reconciliation" in truth and a.reader == "pipeline":
             rsc = harness.score_reconciliation(truth["reconciliation"], resolve(docs).to_json())
             results[str(corpus)]["reconciliation"] = rsc

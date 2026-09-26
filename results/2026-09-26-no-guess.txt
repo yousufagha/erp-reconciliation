@@ -1,0 +1,51 @@
+== corpus/synthetic/scenario_aug2026 [pipeline] ==
+  documents found             100.0%  (34/34)
+  document type               100.0%  (34/34)
+  header fields                95.1%  (212/223)
+  line fields                  85.1%  (229/269)
+  files split correctly       100.0%  (3/3)
+  held for a person           5
+  by type:
+    credit_note               100.0%  (15/15)
+    goods_receipt              65.2%  (45/69)
+    price_schedule            100.0%  (16/16)
+    purchase_order            100.0%  (144/144)
+    remittance                100.0%  (21/21)
+    statement                 100.0%  (34/34)
+    supplier_invoice           86.0%  (166/193)
+  by format:
+    csv                       100.0%  (8/8)
+    docx                      100.0%  (19/19)
+    eml_attachment            100.0%  (31/31)
+    eml_body                  100.0%  (7/7)
+    image_photo                10.8%  (4/37)
+    pdf_scan                   35.3%  (6/17)
+    pdf_text                   98.0%  (244/249)
+    pdf_text_multipage        100.0%  (19/19)
+    pdf_text_pack              95.5%  (42/44)
+    pdf_text_split_files      100.0%  (14/14)
+    ubl_xml                   100.0%  (14/14)
+    xlsx                      100.0%  (33/33)
+  gate: accepted 202 of 223 header values as fact: 202 right, 0 wrong, 0 left blank rather than guessed
+        flagged 0 more for a person to confirm: 0 right, 0 wrong
+  reconciliation:
+    invoice -> PO links       9/9
+    goods owed                recall 100.0%  precision 40.0%  (4 right of 4 expected, 10 reported)
+    paperwork owed            recall 100.0%  precision 100.0%  (1 right of 1 expected, 1 reported)
+    invoiced not received     recall 100.0%  precision 25.0%  (2 right of 2 expected, 8 reported)
+    money owed                recall 100.0%  precision 100.0%  (6 right of 6 expected, 6 reported)
+    exceptions                recall 85.7%  precision 66.7%  (6 right of 7 expected, 9 reported)
+== corpus/public/invoice2data [pipeline] ==
+  documents found             100.0%  (13/13)
+  document type               100.0%  (13/13)
+  header fields                59.0%  (36/61)
+  line fields                  12.8%  (12/94)
+  files split correctly         n/a  (0/0)
+  held for a person           9
+  by type:
+    supplier_invoice           31.0%  (48/155)
+  by format:
+    image                      14.3%  (3/21)
+    pdf_text                   33.6%  (45/134)
+  gate: accepted 9 of 61 header values as fact: 9 right, 0 wrong, 5 left blank rather than guessed
+        flagged 4 more for a person to confirm: 4 right, 0 wrong

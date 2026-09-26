@@ -66,6 +66,16 @@ def test_a_quantity_not_on_the_page_holds_the_document(model):
     assert any("5.990" in n for n in d.notes)
 
 
+PRICE_INVENTED = {**DOCKET, "lines": [dict(DOCKET["lines"][0], unit_price="1,840.00")] + DOCKET["lines"][1:]}
+
+
+@pytest.mark.parametrize("model", [PRICE_INVENTED], indirect=True)
+def test_a_price_the_docket_never_showed_holds_the_document(model):
+    """Dockets carry no prices. A model that supplies one has invented it."""
+    d = _docket(run(SYN))
+    assert d.status == "held" and any("unit_price" in n for n in d.notes)
+
+
 WRONG_NUMBER = {**DOCKET, "fields": dict(DOCKET["fields"], doc_number="DD-55126")}
 
 

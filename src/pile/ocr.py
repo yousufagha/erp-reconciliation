@@ -87,7 +87,7 @@ def _grid(words: list[dict], page: int) -> Grid:
 
 # ------------------------------------------------------------------ grounding
 def _canon(s: str) -> str:
-    s = s.strip().strip(".,;:()[]$€£").replace("$", "")
+    s = s.strip().strip(".,;:()[]$€£'\"‘’“”`").replace("$", "")
     if re.fullmatch(r"-?[\d,]*\.?\d+", s):
         return s.replace(",", "")
     return s.casefold()
@@ -112,11 +112,15 @@ def grounded(value: str, pages: list[OcrPage], fuzzy: bool = False) -> bool | No
             if toks[i:i + n] == parts:
                 return True
         if fuzzy and n > 1:
-            # names: OCR mangles letters in logos and headings; most of the words must still be there
-            words = {t for t in toks if len(t) > 2}
-            hits = sum(1 for p in parts if p in words)
-            if hits / n >= 0.6:
-                return True
+            # names: OCR can mangle a letter in a heading, so exact runs are not required, but at least
+            # 80% of the distinctive words (legal suffixes such as Pty Ltd do not count) must be there
+            suffix = {"pty", "ltd", "limited", "inc", "llc", "co", "corp", "the", "and", "&"}
+            distinctive = [p for p in parts if p not in suffix]
+            words = {t for t in toks if len(t) > 1}
+            if distinctive:
+                hits = sum(1 for p in distinctive if p in words)
+                if hits / len(distinctive) >= 0.8:
+                    return True
         if n == 1:
             # tolerate the page splitting a number such as "1, 840.00" into two tokens
             joined = "".join(toks)

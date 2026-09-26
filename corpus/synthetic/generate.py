@@ -922,8 +922,11 @@ def main() -> None:
              "buyer": {"name": BUYER.name, "abn": BUYER.abn},
              "suppliers": {k: {"name": v.name, "abn": v.abn} for k, v in SUP.items()},
              "documents": docs, "reconciliation": reconciliation_truth()}
-    (OUT / "context.json").write_text(json.dumps({"buyer": {"name": BUYER.name, "abn": BUYER.abn},
-                                                  "note": "The CRM's own company. Configuration, not a document."}, indent=2))
+    (OUT / "context.json").write_text(json.dumps({
+        "buyer": {"name": BUYER.name, "abn": BUYER.abn},
+        "suppliers": [{"name": v.name, "abn": v.abn} for v in SUP.values()],
+        "note": "What the CRM already knows: its own company and its supplier list. Configuration, not documents."},
+        indent=2))
     (OUT / "truth.json").write_text(json.dumps(truth, indent=2, default=str))
     files = sorted(p.name for p in OUT.iterdir() if p.name != "truth.json")
     print(f"{len(files)} files, {len(docs)} documents -> {OUT}")

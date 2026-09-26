@@ -43,6 +43,8 @@ def _ref(v: Any) -> str | None:
 
 def _name(v: Any) -> str | None:
     s = cell_text(v).strip(" :-")
+    if s.startswith("(") or re.search(r"\b(not|to be|please|used|for)\b", s, re.I) and len(s.split()) > 3:
+        return None                      # a note or instruction, not a name
     if 2 <= len(s) <= 80 and re.search(r"[A-Za-z]{2}", s) and len(s.split()) <= 10:
         return s
     return None
@@ -52,7 +54,10 @@ def validate(field: str, v: Any) -> Any:
     if v is None or cell_text(v) == "":
         return None
     if field in MONEY:
-        return parse_money(v) if re.search(r"\d", cell_text(v)) and not re.search(r"[A-Za-z]{4,}", cell_text(v)) else None
+        t = re.sub(r"(?i)\b(aud|usd|eur|gbp|inr|rs|cr|inc|ex|gst)\b\.?", " ", cell_text(v))
+        if not re.search(r"\d", t) or re.search(r"[A-Za-z]{4,}", t) or re.search(r"[A-Za-z]\d|\d[A-Za-z]", t):
+            return None                  # a code such as a VAT number is not an amount
+        return parse_money(v)
     if field in DATE_FIELDS:
         return parse_date(v)
     if field in REFS:
@@ -312,7 +317,7 @@ def infer_parties(grid: Grid, doc_type: DocType, ctx: Context, found: dict[str, 
         if i in buyer_block:
             continue
         for t in row.texts:
-            cand = re.split(r"\s+(?:ABN|A\.B\.N\.|ACN)\b", t.split("  ")[0].split(" | ")[0].strip())[0].strip(" ,")
+            cand = re.split(r"\s+(?:ABN|A\.B\.N\.|ACN)\b|\s+[-|]\s+", t.split("  ")[0].strip())[0].strip(" ,")
             if _looks_like_company(cand) and not _same_party(cand, ctx.buyer_name) \
                     and not cand.lower().startswith(("attn", "c/o")):
                 out["supplier_name"], ev["supplier_name"] = cand, "layout"

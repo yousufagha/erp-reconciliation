@@ -81,3 +81,31 @@ def test_public_invoices_floor():
     deterministic reader must not regress; the model path is expected to lift it."""
     sc = harness.score(harness.load_truth(PUB), [d.to_json() for d in run(PUB)], gated=False)
     assert sc.by_format["pdf_text"].pct >= 30
+
+
+def test_no_wrong_value_is_accepted_as_fact():
+    """The no-guess rule, measured: across both corpora, every header value the gate accepts
+    as fact is right. Values it cannot establish are left blank or flagged, never guessed."""
+    for corpus in (SYN, PUB):
+        gq = harness.gate_quality(harness.load_truth(corpus), [d.to_json() for d in run(corpus)])
+        assert gq["accepted"]["wrong"] == 0, gq["accepted"]["wrong_values"]
+
+
+def test_ambiguous_dates_are_flagged_not_assumed():
+    from pile.dates import ambiguous_dates, order_evidence
+    from pile.extract import Context
+    d = ReadDocument([SourceRef("x.pdf")], DocType.SUPPLIER_INVOICE,
+                     {"date": FieldValue("2026-04-03", printed="03/04/2026")}, raw_text="Invoice date 03/04/2026")
+    assert [k for k, _ in ambiguous_dates(d, Context())] == ["date"]
+    d.raw_text += "  Due 17/04/2026"                       # another date proves day-first
+    assert ambiguous_dates(d, Context()) == []
+    assert order_evidence("04/17/2026") == "monthfirst"
+
+
+def test_supplier_name_never_comes_from_the_first_line(tmp_path):
+    """Without a label, the supplier list or a company-looking letterhead, the name stays blank."""
+    from pile.extract import Context, extract
+    from pile.layout import Grid, Row
+    g = Grid([Row(["Global Wholesaler"]), Row(["TAX INVOICE"]), Row(["Invoice No", "A-1"])])
+    fields, _ = extract(g, DocType.SUPPLIER_INVOICE, Context())
+    assert "supplier_name" not in fields

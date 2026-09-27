@@ -9,6 +9,8 @@ Providers sit behind one small interface so the free test model can be swapped
 for a paid one with a setting:
     PILE_MODEL_PROVIDER = gemini | none         (default: gemini if a key is set)
     PILE_MODEL          = model id              (default below)
+    PILE_MODEL_MIN_INTERVAL = seconds between calls (default 5; free-tier limits are per minute)
+    PILE_MODEL_TIMEOUT  = seconds before a call is abandoned and the page held (default 90)
     GEMINI_API_KEY      = your key from Google AI Studio
 
 Gemini's free tier uses submitted content to improve Google's products. Use it
@@ -89,11 +91,27 @@ class GeminiReader:
 
     def __init__(self, model: str | None = None, api_key: str | None = None):
         from google import genai            # pip install google-genai
+        from google.genai import types
         self.model = model or os.environ.get("PILE_MODEL", DEFAULT_GEMINI_MODEL)
         self.name = f"gemini:{self.model}"
-        self.client = genai.Client(api_key=api_key or os.environ.get("GEMINI_API_KEY"))
+        # A call that cannot finish is reported, never waited on forever. Free-tier limits are
+        # per minute, so calls are spaced and a refused call is retried a few times with backoff.
+        self.min_interval = float(os.environ.get("PILE_MODEL_MIN_INTERVAL", "5"))
+        timeout_ms = int(float(os.environ.get("PILE_MODEL_TIMEOUT", "90")) * 1000)
+        self.client = genai.Client(
+            api_key=api_key or os.environ.get("GEMINI_API_KEY"),
+            http_options=types.HttpOptions(
+                timeout=timeout_ms,
+                retry_options=types.HttpRetryOptions(attempts=3, initial_delay=10, max_delay=60,
+                                                     http_status_codes=[429, 500, 503])))
+        self._last = 0.0
 
     def read_page(self, image_jpeg: bytes) -> dict:
+        import time
+        wait = self.min_interval - (time.monotonic() - self._last)
+        if wait > 0:
+            time.sleep(wait)
+        self._last = time.monotonic()
         interaction = self.client.interactions.create(
             model=self.model,
             input=[{"type": "text", "text": PROMPT},
@@ -125,10 +143,13 @@ def page_images(data: bytes, kind: str, pages: list[int] | None = None, dpi: int
     import pypdfium2 as pdfium
     doc = pdfium.PdfDocument(data)
     out = []
-    for i in range(len(doc)):
-        if pages and i + 1 not in pages:
-            continue
-        out.append((i + 1, doc[i].render(scale=dpi / 72).to_pil().convert("RGB")))
+    try:
+        for i in range(len(doc)):
+            if pages and i + 1 not in pages:
+                continue
+            out.append((i + 1, doc[i].render(scale=dpi / 72).to_pil().convert("RGB")))
+    finally:
+        doc.close()
     return out
 
 

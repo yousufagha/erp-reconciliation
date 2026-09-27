@@ -73,3 +73,12 @@ Compare with `results/2026-09-26-no-model.txt`. What to look at:
   delivery records sit in unread images; a working model path should close that gap
 
 To try a different model: `export PILE_MODEL=gemini-3.5-flash-lite` and rerun step 4.
+
+Calls are spaced 5 seconds apart and abandoned after 90 seconds (`PILE_MODEL_MIN_INTERVAL`,
+`PILE_MODEL_TIMEOUT`). Refused calls (HTTP 429, 500, 503) are retried up to three times with
+backoff. Any call that still fails is listed under "model calls failed" in the evaluation
+output, and its document is held, never passed off as read.
+
+First live run (26 Sep): the phone photos read 100%; the scanned batch and the public PNGs
+failed during the long run but the scan read fine on its own the next day, which points to
+the free tier's per-minute limit. Pacing was added after that run.

@@ -71,6 +71,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"        flagged {fl['values']} more for a person to confirm: {fl['right']} right, {fl['wrong']} wrong")
         for w in ac["wrong_values"]:
             print(f"        ACCEPTED BUT WRONG: {w}")
+        failed = [f"{p['sources'][0]['file']}: {n}" for p in preds for n in p.get("notes", []) if "model call failed" in n]
+        if failed:
+            print(f"  model calls failed: {len(failed)}")
+            for f in failed[:10]:
+                print(f"    {f[:220]}")
+        results[str(corpus)]["model_call_failures"] = failed
         if "reconciliation" in truth and a.reader == "pipeline":
             rsc = harness.score_reconciliation(truth["reconciliation"], resolve(docs).to_json())
             results[str(corpus)]["reconciliation"] = rsc
